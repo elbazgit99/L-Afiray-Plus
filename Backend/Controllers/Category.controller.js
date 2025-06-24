@@ -12,7 +12,7 @@ export const createCategory = async (req, res) => {
 };
 
 // Get all categories
-export const getCategories = async (req, res) => {
+export const getAllCategories = async (req, res) => {
      try {
           const categories = await Category.find();
           res.json(categories);

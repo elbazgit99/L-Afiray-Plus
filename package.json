@@ -6,16 +6,16 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon backend/server.js"
+    "dev": "nodemon Backend/server.js"
   },
-  "repository":{
+  "repository": {
     "type": "git",
-    "url": "git"
+    "url": "github.com/elbazgit99/L-Afiray.ma.git"
   },
   "keywords": [],
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com"
+    "url": "https://github.com/elbazgit99/L-Afiray.ma.git"
   },
   "homepage": "https://github.com",
   "dependencies": {

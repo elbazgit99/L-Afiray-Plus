@@ -1,47 +1,49 @@
+// Backend/Models/User.model.js
 import mongoose from 'mongoose';
+import ROLES from '../Constants/UserRoles.js'; // Adjust path as necessary
 
 const userSchema = new mongoose.Schema({
-     role: {
-          type: String,
-          enum: ['partner', 'buyer'],
-          required: true
-     },
-     name: {
-          type: String,
-          required: true,
-          trim: true
-     },
-     email: {
-          type: String,
-          required: true,
-          unique: true,
-          lowercase: true
-     },
-     password: {
-          type: String,
-          required: true
-     },
-     // Partner-specific fields
-     companyName: {
-          type: String,
-          required: function() { return this.role === 'partner'; }
-     },
-     companyAddress: {
-          type: String,
-          required: function() { return this.role === 'partner'; }
-     },
-     // Buyer-specific fields
-     shippingAddress: {
-          type: String,
-          required: function() { return this.role === 'buyer'; }
-     },
-     phone: {
-          type: String
-     },
-     createdAt: {
-          type: Date,
-          default: Date.now
-     }
+    role: {
+        type: String,
+        enum: [ROLES.PARTNER, ROLES.BUYER], // Using the constants here
+        required: true
+    },
+    name: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true,
+        lowercase: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    // Partner-specific fields
+    companyName: {
+        type: String,
+        required: function() { return this.role === ROLES.PARTNER; }
+    },
+    companyAddress: {
+        type: String,
+        required: function() { return this.role === ROLES.PARTNER; }
+    },
+    // Buyer-specific fields
+    shippingAddress: {
+        type: String,
+        required: function() { return this.role === ROLES.BUYER; }
+    },
+    phone: {
+        type: String
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
 });
 
 const User = mongoose.model('User', userSchema);

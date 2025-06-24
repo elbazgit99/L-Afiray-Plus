@@ -13,3 +13,4 @@ export const connectDB = async() => {
           process.exit(1) //in case connection failed
      }
 }
+

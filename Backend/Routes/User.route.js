@@ -8,21 +8,13 @@ updateUser,
 deleteUser
 } from '../Controllers/User.controller.js';
 
-const router = express.Router();
+const UserRouter = express.Router();
 
-// Get all users
-router.get('/', getAllUsers);
 
-// Get user by ID
-router.get('/:id', getUserById);
+UserRouter.get('/', getAllUsers);
+UserRouter.get('/:id', getUserById);
+UserRouter.post('/', createUser);
+UserRouter.put('/:id', updateUser);
+UserRouter.delete('/:id', deleteUser);
 
-// Create new user
-router.post('/', createUser);
-
-// Update user by ID
-router.put('/:id', updateUser);
-
-// Delete user by ID
-router.delete('/:id', deleteUser);
-
-export default router;
+export default UserRouter;

@@ -1,9 +1,9 @@
-import Model from '../Models/Model.js';
+import CarModel from '../Models/Model.js';
 
 // Get all models
 export const getAllModels = async (req, res) => {
      try {
-          const models = await Model.find();
+          const models = await CarModel.find();
           res.status(200).json(models);
      } catch (error) {
           res.status(500).json({ message: error.message });
@@ -13,7 +13,7 @@ export const getAllModels = async (req, res) => {
 // Get model by ID
 export const getModelById = async (req, res) => {
      try {
-          const model = await Model.findById(req.params.id);
+          const model = await CarModel.findById(req.params.id);
           if (!model) return res.status(404).json({ message: 'Model not found' });
           res.status(200).json(model);
      } catch (error) {
@@ -35,7 +35,7 @@ export const createModel = async (req, res) => {
 // Update model by ID
 export const updateModel = async (req, res) => {
      try {
-          const updatedModel = await Model.findByIdAndUpdate(
+          const updatedModel = await CarModel.findByIdAndUpdate(
                req.params.id,
                req.body,
                { new: true }

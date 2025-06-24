@@ -12,16 +12,15 @@ const app = express();
 
 const PORT = process.env.PORT || 5000;
 
-// Middleware
+// Middleware to parse json
 app.use(express.json());
 app.use(cors());
 
 // Basic test route
 app.get("/", (req, res) => {
-     res.send("Server is up and running!");
+     res.send("Server is running!");
 });
-
-// Use your routes
+//API Routes
 app.use("/api/categories", categoryRoutes);
 app.use("/api/models", modelRoutes);
 app.use("/api/users", userRoutes);
