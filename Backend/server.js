@@ -3,8 +3,9 @@ import dotenv from "dotenv";
 import { connectDB } from "./config/database.js";
 import cors from "cors";
 
-import categoryRoutes from "./Routes/Category.route.js";
-import modelRoutes from "./Routes/Model.route.js";
+import producerRoutes from "./Routes/Producer.route.js";
+import carModelRoutes from "./Routes/CarModel.route.js";
+import CarPartsRouter from "./Routes/CarParts.route.js";
 import userRoutes from "./Routes/User.route.js";
 
 dotenv.config();
@@ -21,8 +22,9 @@ app.get("/", (req, res) => {
      res.send("Server is running!");
 });
 //API Routes
-app.use("/api/categories", categoryRoutes);
-app.use("/api/models", modelRoutes);
+app.use("/api/producers", producerRoutes);
+app.use("/api/models", carModelRoutes);
+app.use("/api/carparts", CarPartsRouter);
 app.use("/api/users", userRoutes);
 
 // Connect to DB and start server

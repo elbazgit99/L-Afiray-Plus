@@ -8,8 +8,8 @@ export const connectDB = async() => {
      try{
           await mongoose.connect(DB_URI)
           console.log("you connected succesfylly")
-     }catch(err) {
-          console.err("connection Failed")
+     }catch(error) {
+          console.error("connection Failed")
           process.exit(1) //in case connection failed
      }
 }

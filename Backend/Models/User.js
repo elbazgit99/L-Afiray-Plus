@@ -5,13 +5,13 @@ import ROLES from '../Constants/UserRoles.js'; // Adjust path as necessary
 const userSchema = new mongoose.Schema({
     role: {
         type: String,
-        enum: [ROLES.PARTNER, ROLES.BUYER], // Using the constants here
+        enum: [ROLES.PARTNER, ROLES.BUYER , ROLES.ADMIN], // Using the constants here
         required: true
     },
     name: {
         type: String,
         required: true,
-        trim: true
+        trim: true // whitespace characters will be automatically removed from the string before it is saved to the DB.
     },
     email: {
         type: String,
