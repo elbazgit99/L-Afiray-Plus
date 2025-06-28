@@ -1,7 +1,3 @@
 node_modules/
 package-lock.json/
 .env
-dist/
-build/
-*.log
-npm-debug.log*
