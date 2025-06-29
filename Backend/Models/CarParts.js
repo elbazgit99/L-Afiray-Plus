@@ -33,8 +33,8 @@ const CarPartSchema = new mongoose.Schema({
      },
      category: {
           type: String,
-          enum: ['Filtres', 'Freinage', 'Moteur', 'Suspension', 'Électricité', 'Éclairage', 'Refroidissement', 'Transmission', 'Carrosserie', 'Other'],
-          default: 'Other'
+          required: [true, 'Part category is required'],
+          trim: true,
      },
      // References to the Producer and CarModel documents
      producer: {

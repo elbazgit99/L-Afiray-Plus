@@ -17,7 +17,9 @@ const CarModelSchema = new mongoose.Schema({
 { timestamps: true });
 
 // Add a compound unique index to ensure model names are unique per producer
-CarModelSchema.index({ name: 1, producer: 1 }, { unique: true });
+CarModelSchema.index(
+     { name: 1, producer: 1 },
+     { unique: true });
 
 const CarModel = mongoose.model('CarModel', CarModelSchema);
 
