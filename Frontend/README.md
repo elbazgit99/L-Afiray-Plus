@@ -1,69 +1,92 @@
-# React + TypeScript + Vite
+# Lafiray.ma: Your Marketplace for Used Car Parts
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 🛠️ Project Overview
+Lafiray.ma is an online platform designed to revolutionize the used car parts market. It connects individual buyers with verified seller partners, offering a transparent and secure environment to buy and sell used car components. The platform addresses market fragmentation and aims to provide efficient search, quality assurance, and reliable transactions.
 
-Currently, two official plugins are available:
+## ✨ Key Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Buyer Frontend
+Intuitive Search & Discovery: Find parts by make, model, year, part name, VIN. Advanced filters available.
 
-## Expanding the ESLint configuration
+Secure Transactions: Integrated shopping cart and secure checkout process.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Order Tracking & Reviews: Monitor orders and provide feedback on sellers and parts.
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Seller Partner Frontend
+Efficient Listing Management: Easy interface for adding, updating, and deleting part listings with images and details.
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+Inventory & Order Tracking: Manage stock levels and view incoming orders with status updates.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Sales Reporting: Dashboard for sales performance and analytics.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Admin Panel
+User & Seller Management: Control accounts and approve seller applications.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Content Moderation & Dispute Resolution: Oversee listings, reviews, and mediate disputes.
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Platform Analytics: Monitor overall platform performance and configure system settings.
+
+## 🚀 Technical Stack
+
+### Frontend:
+
+React.js
+
+Tailwind CSS
+
+Shadcn/UI
+
+Axios (for API communication)
+
+React Router (for navigation)
+
+useState and useEffect (for State Management)
+
+### Backend:
+
+Node.js with Express.js (RESTful API)
+
+JSON Web Tokens (JWT) for Authentication
+
+Protected Routes & Role-Based Access Control (RBAC): Ensures only authorized users (buyers, sellers, admins) can access specific functionalities based on their assigned roles.
+
+### Database:
+
+MongoDB (NoSQL)
+
+Mongoose (ODM)
+
+## 📦 Getting Started
+
+Prerequisites
+Node.js (v18+)
+
+MongoDB Atlas account or local MongoDB instance
+
+Clone the repository: git clone https://github.com/elbazgit99/L-Afiray.ma.git
+
+Navigate to the backend directory: cd L'Afiray.ma/Backend
+
+Install dependencies: npm install
+
+Create a .env file with your DB_URI, JWT_SECRET, and Firebase credentials if using Firestore.
+
+Start the backend server: npm start or npm run dev (if using nodemon).
+
+Frontend Setup
+Navigate to the frontend directory: cd L'Afiray.ma/Frontend (or wherever your React app is).
+
+Install dependencies: npm install
+
+Start the frontend development server: npm run dev
+
+## 💡 Future Enhancements
+AI-Powered Part Recognition (Google Lens-like)
+
+Integrated Logistics & Shipping Solutions
+
+Mobile Applications (iOS/Android)
+
+Firestore (for real-time features like chat, order updates)
+
+Advanced Image Management (Optimization & CDN): Implement robust solutions for serving optimized part images quickly via Content Delivery Networks.
