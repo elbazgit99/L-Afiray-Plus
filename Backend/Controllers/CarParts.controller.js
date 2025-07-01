@@ -6,7 +6,7 @@ import { validationResult } from 'express-validator';
 // Get all car parts
 export const getAllCarParts = async (req, res) => {    
     try {
-        const carParts = await CarPart.find().populate('carModel').populate('producer');
+        const carParts = await CarPart.find().populate('model').populate('producer');
         res.json(carParts);
     } catch (err) {
         res.status(500).json({ error: err.message });
@@ -16,7 +16,7 @@ export const getAllCarParts = async (req, res) => {
 // Get a single car part by ID
 export const getCarPartById = async (req, res) => {
     try {
-        const carPart = await CarPart.findById(req.params.id).populate('carModel').populate('producer');
+        const carPart = await CarPart.findById(req.params.id).populate('model').populate('producer');
         if (!carPart) return res.status(404).json({ error: 'Car part not found' });
         res.json(carPart);
     } catch (err) {
@@ -32,10 +32,10 @@ export const createCarPart = async (req, res) => {
     }
 
     try {
-        const { name, carModel, producer } = req.body;
+        const { name, description, imageUrl, price, brand, compatibility, category, model, producer } = req.body;
 
-        // Validate carModel and producer
-        if (!mongoose.Types.ObjectId.isValid(carModel)) {
+        // Validate model and producer
+        if (!mongoose.Types.ObjectId.isValid(model)) {
             return res.status(400).json({ error: 'Invalid car model ID' });
         }
         if (!mongoose.Types.ObjectId.isValid(producer)) {
@@ -44,7 +44,13 @@ export const createCarPart = async (req, res) => {
 
         const newCarPart = new CarPart({
             name,
-            carModel,
+            description,
+            imageUrl,
+            price,
+            brand,
+            compatibility,
+            category,
+            model,
             producer
         });
 
@@ -62,10 +68,10 @@ export const updateCarPart = async (req, res) => {
     }
 
     try {
-        const { name, carModel, producer } = req.body;
+        const { name, description, imageUrl, price, brand, compatibility, category, model, producer } = req.body;
 
-        // Validate carModel and producer
-        if (!mongoose.Types.ObjectId.isValid(carModel)) {
+        // Validate model and producer
+        if (!mongoose.Types.ObjectId.isValid(model)) {
             return res.status(400).json({ error: 'Invalid car model ID' });
         }
         if (!mongoose.Types.ObjectId.isValid(producer)) {
@@ -74,7 +80,7 @@ export const updateCarPart = async (req, res) => {
 
         const updatedCarPart = await CarPart.findByIdAndUpdate(
             req.params.id,
-            { name, carModel, producer },
+            { name, description, imageUrl, price, brand, compatibility, category, model, producer },
             { new: true, runValidators: true }
         );
 
@@ -107,7 +113,7 @@ export const getCarPartsByCarModel = async (req, res) => {
                return res.status(400).json({ error: 'Invalid car model ID' });
           }
      
-          const carParts = await CarPart.find({ carModel: carModelId }).populate('carModel').populate('producer');
+          const carParts = await CarPart.find({ model: carModelId }).populate('model').populate('producer');
           if (carParts.length === 0) return res.status(404).json({ error: 'No car parts found for this model' });
      
           res.json(carParts);

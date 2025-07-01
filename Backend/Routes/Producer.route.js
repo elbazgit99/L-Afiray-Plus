@@ -12,10 +12,12 @@ import ROLES from '../Constants/UserRoles.js'; // Import ROLES
 
 const ProducerRouter = express.Router();
 
-// Only Partners and Admins can perform CRUD on Producers
+// Public routes: Anyone can view producers
+ProducerRouter.get('/', getAllProducers);
+ProducerRouter.get('/:id', getProducerById);
+
+// Protected routes: Only Partners and Admins can perform CRUD on Producers
 ProducerRouter.post('/', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN]), createProducer);
-ProducerRouter.get('/', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN, ROLES.BUYER]), getAllProducers); // Buyers can also view producers
-ProducerRouter.get('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN, ROLES.BUYER]), getProducerById); // Buyers can also view producers
 ProducerRouter.put('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN]), updateProducer);
 ProducerRouter.delete('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN]), deleteProducer);
 

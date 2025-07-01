@@ -1,0 +1,81 @@
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/context/AuthContext'; 
+import { Button } from '@/components/ui/button'; 
+import { Input } from '@/components/ui/input';   
+import { Label } from '@/components/ui/label';  
+
+// IMPORTANT: Replace the content of this component with the actual code
+// correctly map to the state and functions below.
+
+const Login: React.FC = () => {
+  const { login, loadingAuth, isAuthenticated, user } = useAuth();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  React.useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'ADMIN') {
+        navigate('/admin-dashboard', { replace: true });
+      } else if (user.role === 'PARTNER') {
+        navigate('/partner-dashboard', { replace: true });
+      } else if (user.role === 'BUYER') {
+        navigate('/buyer-dashboard', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await login(email, password);
+  };
+
+  // If already authenticated, don't render the login form
+  if (isAuthenticated) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+      <div className="p-8 rounded-lg shadow-md bg-white dark:bg-black border border-gray-200 dark:border-gray-700 w-full max-w-sm">
+        <h2 className="text-2xl font-bold text-center mb-6 text-black dark:text-white">Login</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="email" className="text-black dark:text-white">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
+            />
+          </div>
+          <div>
+            <Label htmlFor="password" className="text-black dark:text-white">Password</Label>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
+            />
+          </div>
+          <Button type="submit" className="w-full bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity" disabled={loadingAuth}>
+            {loadingAuth ? "Logging in..." : "Login"}
+          </Button>
+        </form>
+        <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4">
+          Don't have an account? <a href="/register" className="text-black dark:text-white underline">Register</a>
+        </p>
+      </div>
+    </div>
+  );
+};
+
+export default Login;
