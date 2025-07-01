@@ -1,9 +1,9 @@
 import User from '../Models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import ROLES from '../Constants/UserRoles.js'; // Ensure ROLES constant is imported
+import ROLES from '../Constants/UserRoles.js'; 
 
-// Helper function to generate a JWT token
+// to help function generate a JWT token
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
         expiresIn: '1h', // Token expires in 1 hour
@@ -21,7 +21,7 @@ export const registerUser = async (req, res) => {
             return res.status(400).json({ message: 'User with this email already exists' });
         }
 
-        // Hash password
+        // to Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
