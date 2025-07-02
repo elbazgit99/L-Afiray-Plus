@@ -21,6 +21,7 @@ const RegisterPage: React.FC = () => {
   const [companyAddress, setCompanyAddress] = useState('');
   const [shippingAddress, setShippingAddress] = useState('');
   const [phone, setPhone] = useState('');
+  const [approvalCode, setApprovalCode] = useState('');
   const navigate = useNavigate();
 
   React.useEffect(() => {
@@ -42,6 +43,7 @@ const RegisterPage: React.FC = () => {
     if (role === 'PARTNER') {
       userData.companyName = companyName;
       userData.companyAddress = companyAddress;
+      userData.approvalCode = approvalCode;
     } else if (role === 'BUYER') {
       userData.shippingAddress = shippingAddress;
     }
@@ -53,7 +55,7 @@ const RegisterPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 px-6 sm:px-12 lg:px-24">
       <div className="p-8 rounded-lg shadow-md bg-white dark:bg-black border border-gray-200 dark:border-gray-700 w-full max-w-lg">
         <h2 className="text-2xl font-bold text-center mb-6 text-black dark:text-white">Register</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -98,6 +100,10 @@ const RegisterPage: React.FC = () => {
               <div>
                 <Label htmlFor="companyAddress" className="text-black dark:text-white">Company Address</Label>
                 <Input id="companyAddress" type="text" placeholder="Your Company Address" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} required className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
+              </div>
+              <div>
+                <Label htmlFor="approvalCode" className="text-black dark:text-white">Approval Code (Optional)</Label>
+                <Input id="approvalCode" type="text" placeholder="Enter approval code if provided by admin" value={approvalCode} onChange={(e) => setApprovalCode(e.target.value)} className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
               </div>
             </>
           )}

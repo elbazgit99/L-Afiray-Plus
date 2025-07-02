@@ -89,7 +89,7 @@ const HomePage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white px-6 sm:px-12 lg:px-24">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
           <p>Loading L'Afiray.ma...</p>
@@ -99,10 +99,10 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white">
+    <div className="min-h-screen bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white px-6 sm:px-12 lg:px-24">
       {/* Header */}
       <header className="bg-white dark:bg-black shadow-sm border-b border-gray-200 dark:border-gray-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-black dark:text-white">L'Afiray.ma</h1>
@@ -154,14 +154,14 @@ const HomePage: React.FC = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="bg-black dark:bg-white text-white dark:text-black py-16 px-6 sm:px-12 lg:px-24">
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 text-center">
           <h2 className="text-4xl md:text-6xl font-bold mb-6">Find Your Perfect Auto Parts</h2>
-          <p className="text-xl md:text-2xl mb-8 text-blue-100">Quality parts from trusted partners across Morocco</p>
+          <p className="text-xl md:text-2xl mb-8 text-gray-300 dark:text-gray-700">Quality parts from trusted partners across Morocco</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               onClick={() => navigate('/parts-catalog')}
-              className="bg-white text-blue-600 hover:bg-blue-50 transition-colors text-lg px-8 py-3"
+              className="bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-lg px-8 py-3"
               size="lg"
             >
               Browse All Parts
@@ -169,7 +169,7 @@ const HomePage: React.FC = () => {
             <Button
               onClick={() => navigate('/register')}
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-blue-600 transition-colors text-lg px-8 py-3"
+              className="border-white text-white dark:border-black dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors text-lg px-8 py-3"
               size="lg"
             >
               Become a Partner
@@ -179,8 +179,8 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Featured Car Parts Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 px-6 sm:px-12 lg:px-24">
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold mb-4">Featured Auto Parts</h3>
             <p className="text-gray-600 dark:text-gray-400 text-lg">Discover quality parts from our trusted partners</p>
@@ -207,7 +207,7 @@ const HomePage: React.FC = () => {
                       <span className="text-sm text-gray-500 dark:text-gray-400">{part.category}</span>
                     </div>
                     <div className="flex justify-between items-center mb-4">
-                      <span className="text-2xl font-bold text-green-600 dark:text-green-400">{part.price?.toFixed(2)} €</span>
+                      <span className="text-2xl font-bold text-green-600 dark:text-green-400">{part.price?.toFixed(2)} DH</span>
                       <span className="text-sm text-gray-500 dark:text-gray-400">{part.producer?.name}</span>
                     </div>
                     <Button
@@ -238,8 +238,8 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Popular Car Models Section */}
-      <section className="py-16 bg-white dark:bg-black">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24">
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold mb-4">Popular Car Models</h3>
             <p className="text-gray-600 dark:text-gray-400 text-lg">Find parts for your specific vehicle</p>
@@ -263,8 +263,8 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Top Producers Section */}
-      <section className="py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="py-16 px-6 sm:px-12 lg:px-24">
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center mb-12">
             <h3 className="text-3xl font-bold mb-4">Trusted Producers</h3>
             <p className="text-gray-600 dark:text-gray-400 text-lg">Quality brands you can rely on</p>
@@ -292,14 +292,14 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-gray-800 to-gray-900 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <section className="py-16 bg-black dark:bg-white text-white dark:text-black px-6 sm:px-12 lg:px-24">
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 text-center">
           <h3 className="text-3xl font-bold mb-4">Ready to Get Started?</h3>
-          <p className="text-xl mb-8 text-gray-300">Join thousands of customers who trust L'Afiray.ma for their auto parts needs</p>
+          <p className="text-xl mb-8 text-gray-300 dark:text-gray-700">Join thousands of customers who trust L'Afiray.ma for their auto parts needs</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
               onClick={() => navigate('/register')}
-              className="bg-white text-gray-900 hover:bg-gray-100 transition-colors text-lg px-8 py-3"
+              className="bg-white text-black dark:bg-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-lg px-8 py-3"
               size="lg"
             >
               Create Account
@@ -307,7 +307,7 @@ const HomePage: React.FC = () => {
             <Button
               onClick={() => navigate('/parts-catalog')}
               variant="outline"
-              className="border-white text-white hover:bg-white hover:text-gray-900 transition-colors text-lg px-8 py-3"
+              className="border-white text-white dark:border-black dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors text-lg px-8 py-3"
               size="lg"
             >
               Browse Parts
@@ -317,8 +317,8 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-black dark:bg-white text-white dark:text-black py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <footer className="bg-black dark:bg-white text-white dark:text-black py-8 px-6 sm:px-12 lg:px-24">
+        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center">
             <h4 className="text-xl font-bold mb-4">L'Afiray.ma</h4>
             <p className="text-gray-400 dark:text-gray-600 mb-4">Your trusted partner for quality auto parts in Morocco</p>

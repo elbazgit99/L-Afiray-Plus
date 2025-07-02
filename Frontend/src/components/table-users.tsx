@@ -105,7 +105,7 @@ const TableUsers: React.FC = () => {
                   onClick={() => handleDelete(user._id)}
                   variant="destructive"
                   size="sm"
-                  className="bg-red-600 text-white hover:bg-red-700 transition-colors"
+                  className="bg-black text-white dark:bg-white dark:text-black hover:bg-red-600 hover:text-white transition-colors"
                 >
                   Delete
                 </Button>

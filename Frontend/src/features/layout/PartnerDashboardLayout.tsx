@@ -14,7 +14,7 @@ const PartnerDashboardLayout: React.FC = () => {
         <h2 className="text-2xl font-bold mb-8 text-black dark:text-white">Partner Panel</h2>
         <nav className="flex-grow space-y-4">
           <Link to="/partner-dashboard" className="block text-black dark:text-white hover:underline text-lg">Dashboard Home</Link>
-          <Link to="/partner-dashboard/listings" className="block text-black dark:text-white hover:underline text-lg">Manage Listings</Link>
+          <Link to="/partner-dashboard/listings" className="block text-black dark:text-white hover:underline text-lg">Car Management</Link>
           <Link to="/partner-dashboard/orders" className="block text-black dark:text-white hover:underline text-lg">Track Orders</Link>
           <Link to="/partner-dashboard/sales-reports" className="block text-black dark:text-white hover:underline text-lg">Sales Reports</Link>
           <Link to="/partner-dashboard/profile" className="block text-black dark:text-white hover:underline text-lg">My Profile</Link>
@@ -29,7 +29,7 @@ const PartnerDashboardLayout: React.FC = () => {
       </aside>
 
       {/* Main Content Area for Partner */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 px-6 sm:px-12 lg:px-24">
         <header className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-3xl font-bold">Welcome, {user?.name} (Partner)!</h1>
           {/* Theme Toggle Component */}

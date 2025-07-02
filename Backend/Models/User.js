@@ -40,6 +40,15 @@ const userSchema = new mongoose.Schema({
     phone: {
         type: String
     },
+    // Partner approval fields
+    isApproved: {
+        type: Boolean,
+        default: false
+    },
+    approvalCode: {
+        type: String,
+        default: null
+    },
     createdAt: {
         type: Date,
         default: Date.now

@@ -169,7 +169,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
         {/* Part Price input */}
         <div>
           <Label htmlFor="part-price" className="block text-sm font-medium mb-1 text-black dark:text-white">
-            Price (€):
+            Price (DH):
           </Label>
           <Input
             type="number"

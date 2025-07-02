@@ -29,7 +29,7 @@ const BuyerDashboardLayout: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 px-6 sm:px-12 lg:px-24">
         <header className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-3xl font-bold">Welcome, {user?.name} (Buyer)!</h1>
           {/* Theme Toggle Component */}

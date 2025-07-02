@@ -84,8 +84,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setLoadingAuth(true);
+    console.log('AuthContext: Starting login process');
     try {
+      console.log('AuthContext: Making request to:', `${API_BASE_URL}/users/login`);
       const response = await axios.post<User>(`${API_BASE_URL}/users/login`, { email, password });
+      console.log('AuthContext: Login response:', response.data);
       const fullUser: User = response.data; // Backend sends full user object with token
 
       localStorage.setItem('token', fullUser.token);
@@ -94,9 +97,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setToken(fullUser.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${fullUser.token}`;
       toast.success("Login Successful", { description: `Welcome, ${fullUser.name}!` });
+      console.log('AuthContext: Login successful, user set:', fullUser);
       return true;
     } catch (error: any) {
-      console.error("Login failed:", error.response?.data || error.message);
+      console.error("AuthContext: Login failed:", error.response?.data || error.message);
+      console.error("AuthContext: Full error:", error);
       toast.error("Login Failed", { description: error.response?.data?.message || "Invalid credentials." });
       return false;
     } finally {

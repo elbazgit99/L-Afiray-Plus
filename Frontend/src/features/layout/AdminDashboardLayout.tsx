@@ -15,10 +15,10 @@ const AdminDashboardLayout: React.FC = () => {
         <nav className="flex-grow space-y-4">
           <Link to="/admin-dashboard" className="block text-black dark:text-white hover:underline text-lg">Dashboard Home</Link>
           <Link to="/admin-dashboard/users" className="block text-black dark:text-white hover:underline text-lg">Manage Users</Link>
-          <Link to="/admin-dashboard/inventory" className="block text-black dark:text-white hover:underline text-lg">Manage Inventory</Link> {/* Renamed from 'courses' */}
-          <Link to="/admin-dashboard/content-moderation" className="block text-black dark:text-white hover:underline text-lg">Content Moderation</Link> {/* New link */}
-          <Link to="/admin-dashboard/analytics" className="block text-black dark:text-white hover:underline text-lg">Platform Analytics</Link> {/* New link */}
-          {/* Add more admin specific links here */}
+          <Link to="/admin-dashboard/partners" className="block text-black dark:text-white hover:underline text-lg">Partner Management</Link>
+          <Link to="/admin-dashboard/inventory" className="block text-black dark:text-white hover:underline text-lg">Manage Inventory</Link>
+          <Link to="/admin-dashboard/content-moderation" className="block text-black dark:text-white hover:underline text-lg">Content Moderation</Link>
+          <Link to="/admin-dashboard/analytics" className="block text-black dark:text-white hover:underline text-lg">Platform Analytics</Link>
         </nav>
         <Button
           onClick={logout}
@@ -30,7 +30,7 @@ const AdminDashboardLayout: React.FC = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-8 px-6 sm:px-12 lg:px-24">
         <header className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200 dark:border-gray-700">
           <h1 className="text-3xl font-bold">Welcome, Admin {user?.name}!</h1>
           {/* Theme Toggle Component */}

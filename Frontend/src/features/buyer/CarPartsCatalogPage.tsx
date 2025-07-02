@@ -115,7 +115,7 @@ const CarPartsCatalogPage: React.FC = () => {
               <span className="font-medium">Car Model:</span> {part.model?.name || 'N/A'}
             </div>
             <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-4">
-              {part.price?.toFixed(2)} €
+                              {part.price?.toFixed(2)} DH
             </div>
             <Button
               onClick={() => handleBuyClick(part.name)}

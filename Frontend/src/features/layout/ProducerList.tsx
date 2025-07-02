@@ -68,7 +68,7 @@ const ProducerList: React.FC<ProducerListProps> = ({
                 <Button
                   variant="destructive"
                   onClick={() => onDeleteProducer(producer._id, producer.name)}
-                  className="py-2 px-4 rounded-lg font-medium shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed bg-red-600 hover:bg-red-700 text-white"
+                  className="py-2 px-4 rounded-lg font-medium shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed bg-black text-white dark:bg-white dark:text-black hover:bg-red-600 hover:text-white transition-colors"
                   title="Delete Producer and all its Models/Parts"
                   disabled={loading}
                 >
@@ -86,7 +86,7 @@ const ProducerList: React.FC<ProducerListProps> = ({
                         <Button
                           variant="destructive"
                           onClick={() => onDeleteModel(model._id, model.name)}
-                          className="py-1.5 px-3 rounded-md text-xs font-medium shadow-sm transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed bg-red-600 hover:bg-red-700 text-white"
+                          className="py-1.5 px-3 rounded-md text-xs font-medium shadow-sm transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed bg-black text-white dark:bg-white dark:text-black hover:bg-red-600 hover:text-white transition-colors"
                           title="Delete Model and all its Parts"
                           disabled={loading}
                         >
@@ -110,13 +110,13 @@ const ProducerList: React.FC<ProducerListProps> = ({
                                 <span className="text-gray-600 dark:text-gray-400 text-sm block truncate" title={part.description}>{part.description || 'No description'}</span>
                                 <span className="text-gray-600 dark:text-gray-400 text-xs block">Brand: <span className="font-medium">{part.brand || 'N/A'}</span></span>
                                 <span className="text-gray-600 dark:text-gray-400 text-xs block">Category: <span className="font-medium">{part.category || 'N/A'}</span></span>
-                                <span className="text-black dark:text-white text-lg font-bold block mt-1">{part.price?.toFixed(2) || '0.00'} €</span>
+                                <span className="text-black dark:text-white text-lg font-bold block mt-1">{part.price?.toFixed(2) || '0.00'} DH</span>
                               </div>
                               <Button
                                 variant="destructive"
                                 size="icon"
                                 onClick={() => onDeletePart(part._id, part.name)}
-                                className="absolute top-2 right-2 rounded-full text-xs disabled:opacity-50 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 bg-red-600 hover:bg-red-700 text-white"
+                                className="absolute top-2 right-2 rounded-full text-xs disabled:opacity-50 disabled:cursor-not-allowed opacity-0 group-hover:opacity-100 transform scale-90 group-hover:scale-100 bg-black text-white dark:bg-white dark:text-black hover:bg-red-600 hover:text-white transition-colors"
                                 title="Delete Part"
                                 disabled={loading}
                               >

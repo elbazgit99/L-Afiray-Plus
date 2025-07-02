@@ -18,7 +18,7 @@ interface Producer {
 interface CarModel {
   _id: string;
   name: string;
-  producer: string;
+  producer: string | { _id: string; name: string };
 }
 
 interface CarPart {
@@ -88,7 +88,10 @@ const PartnerListingsPage: React.FC = () => {
     try {
       const response = await axios.get<CarModel[]>(`${API_BASE_URL}/models`);
       setCarModels(response.data);
-      const modelsForCurrentProducer = response.data.filter(model => model.producer === selectedProducerIdForPart);
+      const modelsForCurrentProducer = response.data.filter(model => {
+        const producerId = typeof model.producer === 'string' ? model.producer : model.producer._id;
+        return producerId === selectedProducerIdForPart;
+      });
       if (modelsForCurrentProducer.length > 0) {
         if (!selectedModelIdForPart || !modelsForCurrentProducer.some(m => m._id === selectedModelIdForPart)) {
           setSelectedModelIdForPart(modelsForCurrentProducer[0]._id);
@@ -123,7 +126,10 @@ const PartnerListingsPage: React.FC = () => {
   }, [getProducers, getModels, getParts]);
 
   useEffect(() => {
-    const modelsForCurrentProducer = carModels.filter(model => model.producer === selectedProducerIdForPart);
+    const modelsForCurrentProducer = carModels.filter(model => {
+      const producerId = typeof model.producer === 'string' ? model.producer : model.producer._id;
+      return producerId === selectedProducerIdForPart;
+    });
     if (modelsForCurrentProducer.length > 0) {
       if (!selectedModelIdForPart || !modelsForCurrentProducer.some(m => m._id === selectedModelIdForPart)) {
         setSelectedModelIdForPart(modelsForCurrentProducer[0]._id);
@@ -248,7 +254,7 @@ const PartnerListingsPage: React.FC = () => {
   return (
     <div className="container mx-auto max-w-4xl bg-white dark:bg-black p-6 sm:p-10 rounded-3xl shadow-2xl space-y-8 border border-gray-200 dark:border-gray-700 transform transition-all duration-300 hover:shadow-3xl">
       <h1 className="text-4xl sm:text-5xl font-extrabold text-center mb-8 leading-tight tracking-tight">
-        Car Inventory Management
+        Partner Car Management
       </h1>
 
       {loading && (

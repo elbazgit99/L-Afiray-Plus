@@ -16,12 +16,17 @@ const Login: React.FC = () => {
 
   // Redirect if already authenticated
   React.useEffect(() => {
+    console.log('Login form useEffect - isAuthenticated:', isAuthenticated, 'user:', user);
     if (isAuthenticated && user) {
+      console.log('User is authenticated, redirecting to dashboard for role:', user.role);
       if (user.role === 'ADMIN') {
+        console.log('Redirecting to admin dashboard');
         navigate('/admin-dashboard', { replace: true });
       } else if (user.role === 'PARTNER') {
+        console.log('Redirecting to partner dashboard');
         navigate('/partner-dashboard', { replace: true });
       } else if (user.role === 'BUYER') {
+        console.log('Redirecting to buyer dashboard');
         navigate('/buyer-dashboard', { replace: true });
       }
     }
@@ -29,7 +34,13 @@ const Login: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await login(email, password);
+    console.log('Attempting login with:', { email, password });
+    try {
+      const result = await login(email, password);
+      console.log('Login result:', result);
+    } catch (error) {
+      console.error('Login error:', error);
+    }
   };
 
   // If already authenticated, don't render the login form
@@ -38,7 +49,7 @@ const Login: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 px-6 sm:px-12 lg:px-24">
       <div className="p-8 rounded-lg shadow-md bg-white dark:bg-black border border-gray-200 dark:border-gray-700 w-full max-w-sm">
         <h2 className="text-2xl font-bold text-center mb-6 text-black dark:text-white">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">

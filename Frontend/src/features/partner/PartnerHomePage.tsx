@@ -10,7 +10,7 @@ const PartnerHomePage: React.FC = () => {
       <div className="mt-6 p-4 border border-dashed border-gray-300 dark:border-gray-600 rounded-md">
         <h3 className="text-xl font-semibold mb-2">Quick Access:</h3>
         <ul className="list-disc list-inside text-gray-700 dark:text-gray-300">
-          <li><a href="/partner-dashboard/listings" className="underline hover:text-black dark:hover:text-white">Manage Listings</a></li>
+          <li><a href="/partner-dashboard/listings" className="underline hover:text-black dark:hover:text-white">Car Management</a></li>
           <li><a href="/partner-dashboard/orders" className="underline hover:text-black dark:hover:text-white">Track Orders</a></li>
           <li><a href="/partner-dashboard/sales-reports" className="underline hover:text-black dark:hover:text-white">View Sales Reports</a></li>
           <li><a href="/partner-dashboard/profile" className="underline hover:text-black dark:hover:text-white">My Profile</a></li>

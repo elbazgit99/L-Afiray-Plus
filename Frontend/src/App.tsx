@@ -16,6 +16,7 @@ import AdminDashboardLayout from '@/features/layout/AdminDashboardLayout';
 import AdminHomePage from '@/components/home-dash';
 import { TableUsers } from '@/components/table-users';
 import UpdateUserForm from '@/components/form-update';
+import PartnerManagementPage from '@/features/admin/PartnerManagementPage';
 import ContentModerationPage from '@/features/admin/ContentModerationPage';
 import PlatformAnalyticsPage from '@/features/admin/PlatformAnalyticsPage';
 
@@ -38,7 +39,7 @@ import CheckoutPage from '@/features/buyer/CheckoutPage';
 // NoMatch component for 404
 const NoMatch: React.FC = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white">
+    <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white px-6 sm:px-12 lg:px-24">
       <div className="text-center">
         <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
         <p className="text-lg">The page you're looking for does not exist.</p>
@@ -68,6 +69,7 @@ const App: React.FC = () => {
               <Route index element={<AdminHomePage />} />
               <Route path="users" element={<TableUsers />} />
               <Route path="users/update/:id" element={<UpdateUserForm />} />
+              <Route path="partners" element={<PartnerManagementPage />} />
               <Route path="inventory" element={<PartnerListingsPage />} /> {/* Admin can view/manage inventory via PartnerListingsPage */}
               <Route path="content-moderation" element={<ContentModerationPage />} />
               <Route path="analytics" element={<PlatformAnalyticsPage />} />

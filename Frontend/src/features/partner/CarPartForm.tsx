@@ -19,7 +19,7 @@ interface Producer {
 interface CarModel {
   _id: string;
   name: string;
-  producer: string;
+  producer: string | { _id: string; name: string };
 }
 
 interface CarPartFormProps {
@@ -59,7 +59,10 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
   const [newPartCategory, setNewPartCategory] = useState<string>('');
   const [newPartImageUrl, setNewPartImageUrl] = useState<string>('');
 
-  const modelsForSelectedProducerForParts = carModels.filter(model => model.producer === selectedProducerIdForPart);
+  const modelsForSelectedProducerForParts = carModels.filter(model => {
+    const producerId = typeof model.producer === 'string' ? model.producer : model.producer._id;
+    return producerId === selectedProducerIdForPart;
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,7 +171,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
         {/* Part Price input */}
         <div>
           <Label htmlFor="part-price" className="block text-sm font-medium mb-1 text-black dark:text-white">
-            Price (€):
+            Price (DH):
           </Label>
           <Input
             type="number"
