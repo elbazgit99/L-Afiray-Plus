@@ -13,8 +13,7 @@ const CarPartSchema = new mongoose.Schema({
      },
      imageUrl: {
           type: String,
-          required: [true, 'Image URL is required'],
-          match: [/^https?:\/\/.+\.(jpg|jpeg|png|gif|webp|svg)$/, 'Please provide a valid image URL']
+          required: [true, 'Image URL is required']
      },
      price: {
           type: Number,

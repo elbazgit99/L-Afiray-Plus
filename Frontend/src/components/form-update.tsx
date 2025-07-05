@@ -114,7 +114,7 @@ const UpdateUserForm: React.FC = () => {
                 <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
-                <SelectItem value="ADMIN">Admin</SelectItem>
+                                        <SelectItem value="MODERATOR">Moderator</SelectItem>
                 <SelectItem value="PARTNER">Partner</SelectItem>
                 <SelectItem value="BUYER">Buyer</SelectItem>
               </SelectContent>

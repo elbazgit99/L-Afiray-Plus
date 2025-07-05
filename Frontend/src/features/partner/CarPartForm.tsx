@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
+import { Upload, X } from 'lucide-react';
 
 interface Producer {
   _id: string;
@@ -28,7 +30,7 @@ interface CarPartFormProps {
   onAddPart: (partData: {
     name: string;
     description: string;
-    imageUrl: string;
+    imageFile: File | null;
     price: number;
     brand: string;
     category: string;
@@ -56,23 +58,56 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
   const [newPartDescription, setNewPartDescription] = useState<string>('');
   const [newPartPrice, setNewPartPrice] = useState<string>('');
   const [newPartBrand, setNewPartBrand] = useState<string>('');
-  const [newPartCategory, setNewPartCategory] = useState<string>('');
-  const [newPartImageUrl, setNewPartImageUrl] = useState<string>('');
+  const [newPartEngineType, setNewPartEngineType] = useState<string>('');
+  const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const modelsForSelectedProducerForParts = carModels.filter(model => {
     const producerId = typeof model.producer === 'string' ? model.producer : model.producer._id;
     return producerId === selectedProducerIdForPart;
   });
 
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+        toast.error('Image too large', { description: 'Please select an image smaller than 5MB' });
+        return;
+      }
+
+      if (!file.type.startsWith('image/')) {
+        toast.error('Invalid file type', { description: 'Please select an image file' });
+        return;
+      }
+
+      setSelectedImageFile(file);
+      
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const partData = {
       name: newPartName.trim(),
       description: newPartDescription.trim(),
-      imageUrl: newPartImageUrl.trim(),
+      imageFile: selectedImageFile,
       price: parseFloat(newPartPrice),
       brand: newPartBrand.trim(),
-      category: newPartCategory.trim(),
+      category: newPartEngineType.trim(),
       producer: selectedProducerIdForPart,
       model: selectedModelIdForPart,
     };
@@ -81,8 +116,9 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
     setNewPartDescription('');
     setNewPartPrice('');
     setNewPartBrand('');
-    setNewPartCategory('');
-    setNewPartImageUrl('');
+    setNewPartEngineType('');
+    setSelectedImageFile(null);
+    setImagePreview(null);
   };
 
   return (
@@ -201,42 +237,84 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
             disabled={loading}
           />
         </div>
-        {/* Part Category input (now a free-text input) */}
+        {/* Part Engine Type input */}
         <div>
-          <Label htmlFor="part-category" className="block text-sm font-medium mb-1 text-black dark:text-white">
-            Category:
+          <Label htmlFor="part-engine-type" className="block text-sm font-medium mb-1 text-black dark:text-white">
+            Engine Type:
           </Label>
-          <Input
-            type="text"
-            id="part-category"
-            placeholder="e.g., Filtres, Moteur, Suspension"
-            value={newPartCategory}
-            onChange={(e) => setNewPartCategory(e.target.value)}
-            className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
-            required
+          <Select
+            value={newPartEngineType}
+            onValueChange={setNewPartEngineType}
             disabled={loading}
-          />
+          >
+            <SelectTrigger id="part-engine-type" className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600">
+              <SelectValue placeholder="Select engine type" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
+              <SelectItem value="Petrol">Petrol/Gasoline</SelectItem>
+              <SelectItem value="Diesel">Diesel</SelectItem>
+              <SelectItem value="Electric">Electric</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
-        {/* Part Image URL input */}
+        {/* Part Image Upload */}
         <div>
-          <Label htmlFor="part-image-url" className="block text-sm font-medium mb-1 text-black dark:text-white">
-            Part Image URL:
+          <Label htmlFor="part-image-upload" className="block text-sm font-medium mb-1 text-black dark:text-white">
+            Part Image:
           </Label>
-          <Input
-            type="url"
-            id="part-image-url"
-            placeholder="https://example.com/part-image.jpg"
-            value={newPartImageUrl}
-            onChange={(e) => setNewPartImageUrl(e.target.value)}
-            className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
-            required
-            disabled={loading}
-          />
+          <div className="space-y-3">
+            {!imagePreview ? (
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  id="part-image-upload"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                  disabled={loading}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={loading}
+                  className="w-full border-gray-300 dark:border-gray-600 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Image
+                </Button>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  PNG, JPG, GIF up to 5MB
+                </p>
+              </div>
+            ) : (
+              <div className="relative">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-48 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 bg-white dark:bg-black border border-gray-300 dark:border-gray-600 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
         <Button
           type="submit"
           className="w-full bg-black text-white dark:bg-white dark:text-black py-3 px-6 rounded-xl font-semibold hover:opacity-90 transition duration-300 shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading || producers.length === 0 || modelsForSelectedProducerForParts.length === 0 || newPartCategory.trim() === ''}
+          disabled={loading || producers.length === 0 || modelsForSelectedProducerForParts.length === 0 || newPartEngineType.trim() === '' || !selectedImageFile}
         >
           Add Car Part
         </Button>

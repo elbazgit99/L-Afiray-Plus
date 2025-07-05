@@ -19,17 +19,21 @@ const RegisterPage: React.FC = () => {
   const [role, setRole] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
-  const [shippingAddress, setShippingAddress] = useState('');
   const [phone, setPhone] = useState('');
-  const [approvalCode, setApprovalCode] = useState('');
   const navigate = useNavigate();
 
   React.useEffect(() => {
     if (isAuthenticated && user) {
-      if (user.role === 'ADMIN') {
-        navigate('/admin-dashboard', { replace: true });
+      if (user.role === 'MODERATOR') {
+        navigate('/moderator-dashboard', { replace: true });
       } else if (user.role === 'PARTNER') {
-        navigate('/partner-dashboard', { replace: true });
+        // Partners should not be redirected to dashboard if not approved
+        if (user.isApproved) {
+          navigate('/partner-dashboard', { replace: true });
+        } else {
+          // Show approval pending message instead of redirecting
+          navigate('/approval-pending', { replace: true });
+        }
       } else if (user.role === 'BUYER') {
         navigate('/buyer-dashboard', { replace: true });
       }
@@ -43,9 +47,6 @@ const RegisterPage: React.FC = () => {
     if (role === 'PARTNER') {
       userData.companyName = companyName;
       userData.companyAddress = companyAddress;
-      userData.approvalCode = approvalCode;
-    } else if (role === 'BUYER') {
-      userData.shippingAddress = shippingAddress;
     }
     await register(userData);
   };
@@ -72,8 +73,8 @@ const RegisterPage: React.FC = () => {
             <Input id="password" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} required className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
           </div>
           <div>
-            <Label htmlFor="phone" className="text-black dark:text-white">Phone (Optional)</Label>
-            <Input id="phone" type="text" placeholder="+212XXXXXXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
+            <Label htmlFor="phone" className="text-black dark:text-white">Phone Number</Label>
+            <Input id="phone" type="text" placeholder="+212XXXXXXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} required className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
           </div>
 
           <div>
@@ -85,8 +86,8 @@ const RegisterPage: React.FC = () => {
               <SelectContent className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
                 <SelectItem value="PARTNER">Partner</SelectItem>
                 <SelectItem value="BUYER">Buyer</SelectItem>
-                {/* Admin role registration should ideally be handled by an existing admin, not public registration */}
-                {/* <SelectItem value="ADMIN">Admin</SelectItem> */}
+                {/* Moderator role registration should ideally be handled by an existing moderator, not public registration */}
+                {/* <SelectItem value="MODERATOR">Moderator</SelectItem> */}
               </SelectContent>
             </Select>
           </div>
@@ -101,19 +102,11 @@ const RegisterPage: React.FC = () => {
                 <Label htmlFor="companyAddress" className="text-black dark:text-white">Company Address</Label>
                 <Input id="companyAddress" type="text" placeholder="Your Company Address" value={companyAddress} onChange={(e) => setCompanyAddress(e.target.value)} required className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
               </div>
-              <div>
-                <Label htmlFor="approvalCode" className="text-black dark:text-white">Approval Code (Optional)</Label>
-                <Input id="approvalCode" type="text" placeholder="Enter approval code if provided by admin" value={approvalCode} onChange={(e) => setApprovalCode(e.target.value)} className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
-              </div>
+
             </>
           )}
 
-          {role === 'BUYER' && (
-            <div>
-              <Label htmlFor="shippingAddress" className="text-black dark:text-white">Shipping Address</Label>
-              <Input id="shippingAddress" type="text" placeholder="Your Shipping Address" value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} required className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
-            </div>
-          )}
+
 
           <Button type="submit" className="w-full bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity" disabled={loadingAuth}>
             {loadingAuth ? "Registering..." : "Register"}

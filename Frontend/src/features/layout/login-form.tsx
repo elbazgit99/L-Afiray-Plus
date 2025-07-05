@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext'; 
 import { Button } from '@/components/ui/button'; 
 import { Input } from '@/components/ui/input';   
-import { Label } from '@/components/ui/label';  
+import { Label } from '@/components/ui/label';
+import { ArrowLeft, Home } from 'lucide-react';  
 
 // IMPORTANT: Replace the content of this component with the actual code
 // correctly map to the state and functions below.
@@ -19,12 +20,15 @@ const Login: React.FC = () => {
     console.log('Login form useEffect - isAuthenticated:', isAuthenticated, 'user:', user);
     if (isAuthenticated && user) {
       console.log('User is authenticated, redirecting to dashboard for role:', user.role);
-      if (user.role === 'ADMIN') {
-        console.log('Redirecting to admin dashboard');
-        navigate('/admin-dashboard', { replace: true });
+      // moderator dashboard
+              if (user.role === 'MODERATOR') {
+            console.log('Redirecting to moderator dashboard');
+            navigate('/moderator-dashboard', { replace: true });
+        // partner dashboard
       } else if (user.role === 'PARTNER') {
         console.log('Redirecting to partner dashboard');
         navigate('/partner-dashboard', { replace: true });
+        // buyer dashboard
       } else if (user.role === 'BUYER') {
         console.log('Redirecting to buyer dashboard');
         navigate('/buyer-dashboard', { replace: true });
@@ -50,7 +54,18 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 px-6 sm:px-12 lg:px-24">
-      <div className="p-8 rounded-lg shadow-md bg-white dark:bg-black border border-gray-200 dark:border-gray-700 w-full max-w-sm">
+      <div className="p-8 rounded-lg shadow-md bg-white dark:bg-black border border-gray-200 dark:border-gray-700 w-full max-w-sm relative">
+        {/* Back to Home Button */}
+        <Button
+          onClick={() => navigate('/')}
+          variant="ghost"
+          size="sm"
+          className="absolute top-4 left-4 p-2 h-auto w-auto text-black dark:text-white hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-all duration-200 group"
+        >
+          <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
+          <span className="sr-only">Back to Home</span>
+        </Button>
+        
         <h2 className="text-2xl font-bold text-center mb-6 text-black dark:text-white">Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

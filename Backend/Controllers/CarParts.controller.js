@@ -1,5 +1,4 @@
 import CarPart from '../Models/CarParts.js';
-
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
 
@@ -32,7 +31,7 @@ export const createCarPart = async (req, res) => {
     }
 
     try {
-        const { name, description, imageUrl, price, brand, compatibility, category, model, producer } = req.body;
+        const { name, description, price, brand, compatibility, category, model, producer } = req.body;
 
         // Validate model and producer
         if (!mongoose.Types.ObjectId.isValid(model)) {
@@ -40,6 +39,16 @@ export const createCarPart = async (req, res) => {
         }
         if (!mongoose.Types.ObjectId.isValid(producer)) {
             return res.status(400).json({ error: 'Invalid producer ID' });
+        }
+
+        // Handle image upload
+        let imageUrl = '';
+        if (req.file) {
+            // Create the full URL for the uploaded image
+            const baseUrl = `${req.protocol}://${req.get('host')}`;
+            imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        } else {
+            return res.status(400).json({ error: 'Image is required' });
         }
 
         const newCarPart = new CarPart({
@@ -68,7 +77,7 @@ export const updateCarPart = async (req, res) => {
     }
 
     try {
-        const { name, description, imageUrl, price, brand, compatibility, category, model, producer } = req.body;
+        const { name, description, price, brand, compatibility, category, model, producer } = req.body;
 
         // Validate model and producer
         if (!mongoose.Types.ObjectId.isValid(model)) {
@@ -78,9 +87,18 @@ export const updateCarPart = async (req, res) => {
             return res.status(400).json({ error: 'Invalid producer ID' });
         }
 
+        // Handle image upload for updates
+        let updateData = { name, description, price, brand, compatibility, category, model, producer };
+        
+        if (req.file) {
+            // Create the full URL for the uploaded image
+            const baseUrl = `${req.protocol}://${req.get('host')}`;
+            updateData.imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        }
+
         const updatedCarPart = await CarPart.findByIdAndUpdate(
             req.params.id,
-            { name, description, imageUrl, price, brand, compatibility, category, model, producer },
+            updateData,
             { new: true, runValidators: true }
         );
 

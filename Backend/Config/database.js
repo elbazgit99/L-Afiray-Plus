@@ -3,14 +3,14 @@ import mongoose from 'mongoose'
 
 dotenv.config()
 
-const DB_URI = process.env.DB_URI
+const DB_URI = process.env.DB_URI 
 export const connectDB = async() => {
      try{
           await mongoose.connect(DB_URI)
-          console.log("you connected succesfylly")
+          console.log("Database connected successfully")
      }catch(error) {
-          console.error("connection Failed")
-          process.exit(1) //in case connection failed
+          console.error("Database connection failed:", error.message)
+          process.exit(1)
      }
 }
 

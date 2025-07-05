@@ -2,12 +2,14 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
 import { useLocation } from 'react-router-dom'; // Keep useLocation if needed for conditional rendering based on path
+import { useAuth } from '@/context/AuthContext';
 
 // Import the sub-components
 import ProducerForm from '@/features/partner/ProducerForm';
 import CarModelForm from '@/features/partner/CarModelForm';
 import CarPartForm from '@/features/partner/CarPartForm';
 import ProducerList from '@/features/partner/ProducerList';
+import ApprovalPendingBanner from '@/components/ApprovalPendingBanner';
 
 // Define interfaces for your data structures
 interface Producer {
@@ -37,7 +39,8 @@ interface CarPart {
 const API_BASE_URL = 'http://localhost:5000/api';
 
 const PartnerListingsPage: React.FC = () => {
-  const location = useLocation(); // Retain useLocation if this page might be used in different paths (e.g., Admin)
+  const location = useLocation(); // Retain useLocation if this page might be used in different paths (e.g., Moderator)
+  const { user } = useAuth();
 
   // State for managing car producers, models, and nested parts
   const [producers, setProducers] = useState<Producer[]>([]);
@@ -119,7 +122,7 @@ const PartnerListingsPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Fetch data when this component mounts or location changes (if needed for admin view)
+    // Fetch data when this component mounts or location changes (if needed for moderator view)
     getProducers();
     getModels();
     getParts();
@@ -182,15 +185,15 @@ const PartnerListingsPage: React.FC = () => {
   const addPart = useCallback(async (partData: {
     name: string;
     description: string;
-    imageUrl: string;
+    imageFile: File | null;
     price: number;
     brand: string;
     category: string;
     producer: string;
     model: string;
   }) => {
-    if (partData.name.trim() === '' || partData.imageUrl.trim() === '' || partData.model === '' || !partData.price || partData.category.trim() === '') {
-      notify('Input Error', 'Please fill all part fields and select a model.', 'destructive');
+    if (partData.name.trim() === '' || !partData.imageFile || partData.model === '' || !partData.price || partData.category.trim() === '') {
+      notify('Input Error', 'Please fill all part fields, upload an image, and select a model.', 'destructive');
       return;
     }
     if (isNaN(partData.price) || partData.price < 0) {
@@ -200,7 +203,22 @@ const PartnerListingsPage: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post<CarPart>(`${API_BASE_URL}/carparts`, partData);
+      // Create FormData for file upload
+      const formData = new FormData();
+      formData.append('name', partData.name.trim());
+      formData.append('description', partData.description.trim());
+      formData.append('price', partData.price.toString());
+      formData.append('brand', partData.brand.trim());
+      formData.append('category', partData.category.trim());
+      formData.append('producer', partData.producer);
+      formData.append('model', partData.model);
+      formData.append('imageFile', partData.imageFile);
+
+      const response = await axios.post<CarPart>(`${API_BASE_URL}/carparts`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       notify('Success!', `Part "${response.data.name}" added successfully!`);
       getParts();
     } catch (error: any) {
@@ -250,6 +268,16 @@ const PartnerListingsPage: React.FC = () => {
       setLoading(false);
     }
   }, [getParts, notify]);
+
+  // Check if partner is approved (only for partner users, not moderators)
+  if (user?.role === 'PARTNER' && user?.isApproved === false) {
+    return (
+      <ApprovalPendingBanner 
+        partnerName={user.name} 
+        companyName={user.companyName || 'Your Company'} 
+      />
+    );
+  }
 
   return (
     <div className="container mx-auto max-w-4xl bg-white dark:bg-black p-6 sm:p-10 rounded-3xl shadow-2xl space-y-8 border border-gray-200 dark:border-gray-700 transform transition-all duration-300 hover:shadow-3xl">

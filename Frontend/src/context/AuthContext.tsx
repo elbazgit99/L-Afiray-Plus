@@ -9,6 +9,7 @@ interface User {
   email: string;
   role: string;
   token: string;
+  isApproved?: boolean;
   companyName?: string;
   companyAddress?: string;
   shippingAddress?: string;
@@ -22,7 +23,7 @@ interface AuthContextType {
   register: (userData: any) => Promise<boolean>;
   logout: () => void;
   isAuthenticated: boolean;
-  isAdmin: boolean;
+      isModerator: boolean;
   isPartner: boolean;
   isBuyer: boolean;
   loadingAuth: boolean;
@@ -84,12 +85,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string): Promise<boolean> => {
     setLoadingAuth(true);
-    console.log('AuthContext: Starting login process');
+    console.log('AuthContext: Starting login process for:', email);
     try {
       console.log('AuthContext: Making request to:', `${API_BASE_URL}/users/login`);
       const response = await axios.post<User>(`${API_BASE_URL}/users/login`, { email, password });
       console.log('AuthContext: Login response:', response.data);
       const fullUser: User = response.data; // Backend sends full user object with token
+
+      console.log('AuthContext: Setting user data:', {
+        _id: fullUser._id,
+        name: fullUser.name,
+        email: fullUser.email,
+        role: fullUser.role,
+        isApproved: fullUser.isApproved,
+        hasToken: !!fullUser.token
+      });
 
       localStorage.setItem('token', fullUser.token);
       localStorage.setItem('user', JSON.stringify(fullUser));
@@ -102,7 +112,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error: any) {
       console.error("AuthContext: Login failed:", error.response?.data || error.message);
       console.error("AuthContext: Full error:", error);
-      toast.error("Login Failed", { description: error.response?.data?.message || "Invalid credentials." });
+      
+      // Handle partner approval status
+      if (error.response?.status === 403 && error.response?.data?.isApproved === false) {
+        toast.error("Account Pending Approval", { 
+          description: "Your partner account is pending approval. Please wait for moderator approval before accessing the platform." 
+        });
+      } else {
+        toast.error("Login Failed", { description: error.response?.data?.message || "Invalid credentials." });
+      }
       return false;
     } finally {
       setLoadingAuth(false);
@@ -120,7 +138,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setUser(fullUser);
       setToken(fullUser.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${fullUser.token}`;
-      toast.success("Registration Successful", { description: `Welcome, ${fullUser.name}!` });
+      
+      // Show appropriate message based on approval status
+      if (fullUser.role === 'PARTNER' && !fullUser.isApproved) {
+        toast.success("Registration Successful", { 
+          description: "Your partner account has been created successfully! Please wait for moderator approval before accessing the platform." 
+        });
+      } else {
+        toast.success("Registration Successful", { description: `Welcome, ${fullUser.name}!` });
+      }
       return true;
     } catch (error: any) {
       console.error("Registration failed:", error.response?.data || error.message);
@@ -142,7 +168,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   };
 
   const isAuthenticated = !!user && !!token;
-  const isAdmin = user?.role === 'ADMIN';
+          const isModerator = user?.role === 'MODERATOR';
   const isPartner = user?.role === 'PARTNER';
   const isBuyer = user?.role === 'BUYER';
 
@@ -153,7 +179,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     isAuthenticated,
-    isAdmin,
+            isModerator,
     isPartner,
     isBuyer,
     loadingAuth,

@@ -14,7 +14,6 @@ interface Partner {
   companyAddress: string;
   phone: string;
   isApproved: boolean;
-  approvalCode?: string;
   createdAt: string;
 }
 
@@ -23,15 +22,6 @@ const API_BASE_URL = 'http://localhost:5000/api';
 const PartnerManagementPage: React.FC = () => {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [loading, setLoading] = useState(true);
-  const [generatingCode, setGeneratingCode] = useState(false);
-  const [newPartner, setNewPartner] = useState({
-    name: '',
-    email: '',
-    password: '',
-    companyName: '',
-    companyAddress: '',
-    phone: ''
-  });
 
   useEffect(() => {
     fetchPartners();
@@ -48,23 +38,14 @@ const PartnerManagementPage: React.FC = () => {
     }
   };
 
-  const generateApprovalCode = async (partnerId: string) => {
-    setGeneratingCode(true);
-    try {
-      const response = await axios.post(`${API_BASE_URL}/users/${partnerId}/approval-code`);
-      toast.success('Approval code generated successfully', { description: `Code: ${response.data.approvalCode}` });
-      fetchPartners(); // Refresh the list
-    } catch (error: any) {
-      toast.error('Failed to generate approval code', { description: error.response?.data?.message || 'Network error' });
-    } finally {
-      setGeneratingCode(false);
-    }
-  };
+
 
   const approvePartner = async (partnerId: string) => {
     try {
       await axios.put(`${API_BASE_URL}/users/${partnerId}/approve`);
-      toast.success('Partner approved successfully');
+      toast.success('Partner approved successfully', { 
+        description: 'Approval email has been sent to the partner' 
+      });
       fetchPartners(); // Refresh the list
     } catch (error: any) {
       toast.error('Failed to approve partner', { description: error.response?.data?.message || 'Network error' });
@@ -74,34 +55,16 @@ const PartnerManagementPage: React.FC = () => {
   const rejectPartner = async (partnerId: string) => {
     try {
       await axios.put(`${API_BASE_URL}/users/${partnerId}/reject`);
-      toast.success('Partner rejected');
+      toast.success('Partner rejected', { 
+        description: 'Rejection email has been sent to the partner' 
+      });
       fetchPartners(); // Refresh the list
     } catch (error: any) {
       toast.error('Failed to reject partner', { description: error.response?.data?.message || 'Network error' });
     }
   };
 
-  const createPartner = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await axios.post(`${API_BASE_URL}/users`, {
-        ...newPartner,
-        role: 'PARTNER'
-      });
-      toast.success('Partner created successfully');
-      setNewPartner({
-        name: '',
-        email: '',
-        password: '',
-        companyName: '',
-        companyAddress: '',
-        phone: ''
-      });
-      fetchPartners(); // Refresh the list
-    } catch (error: any) {
-      toast.error('Failed to create partner', { description: error.response?.data?.message || 'Network error' });
-    }
-  };
+
 
   const deletePartner = async (partnerId: string) => {
     if (!confirm('Are you sure you want to delete this partner?')) return;
@@ -135,82 +98,7 @@ const PartnerManagementPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Create New Partner Form */}
-      <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
-        <CardHeader>
-          <CardTitle className="text-black dark:text-white">Create New Partner</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={createPartner} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="name" className="text-black dark:text-white">Name</Label>
-                <Input
-                  id="name"
-                  value={newPartner.name}
-                  onChange={(e) => setNewPartner({ ...newPartner, name: e.target.value })}
-                  required
-                  className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
-                />
-              </div>
-              <div>
-                <Label htmlFor="email" className="text-black dark:text-white">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={newPartner.email}
-                  onChange={(e) => setNewPartner({ ...newPartner, email: e.target.value })}
-                  required
-                  className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
-                />
-              </div>
-              <div>
-                <Label htmlFor="password" className="text-black dark:text-white">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={newPartner.password}
-                  onChange={(e) => setNewPartner({ ...newPartner, password: e.target.value })}
-                  required
-                  className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
-                />
-              </div>
-              <div>
-                <Label htmlFor="phone" className="text-black dark:text-white">Phone</Label>
-                <Input
-                  id="phone"
-                  value={newPartner.phone}
-                  onChange={(e) => setNewPartner({ ...newPartner, phone: e.target.value })}
-                  className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
-                />
-              </div>
-              <div>
-                <Label htmlFor="companyName" className="text-black dark:text-white">Company Name</Label>
-                <Input
-                  id="companyName"
-                  value={newPartner.companyName}
-                  onChange={(e) => setNewPartner({ ...newPartner, companyName: e.target.value })}
-                  required
-                  className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
-                />
-              </div>
-              <div>
-                <Label htmlFor="companyAddress" className="text-black dark:text-white">Company Address</Label>
-                <Input
-                  id="companyAddress"
-                  value={newPartner.companyAddress}
-                  onChange={(e) => setNewPartner({ ...newPartner, companyAddress: e.target.value })}
-                  required
-                  className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
-                />
-              </div>
-            </div>
-            <Button type="submit" className="bg-black text-white dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
-              Create Partner
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+
 
       {/* Partners List */}
       <Card className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
@@ -245,25 +133,13 @@ const PartnerManagementPage: React.FC = () => {
                         }`}>
                           {partner.isApproved ? 'Approved' : 'Pending Approval'}
                         </span>
-                        {partner.approvalCode && (
-                          <span className="ml-2 inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 rounded-full">
-                            Code: {partner.approvalCode}
-                          </span>
-                        )}
+
                       </div>
                     </div>
                     <div className="flex flex-col space-y-2 ml-4">
-                                             {!partner.isApproved && (
-                         <>
-                           <Button
-                             onClick={() => generateApprovalCode(partner._id)}
-                             disabled={generatingCode}
-                             className="bg-black text-white dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-                             size="sm"
-                           >
-                             {generatingCode ? 'Generating...' : 'Generate Code'}
-                           </Button>
-                           <Button
+                                                                 {!partner.isApproved && (
+                      <>
+                        <Button
                              onClick={() => approvePartner(partner._id)}
                              className="bg-black text-white dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
                              size="sm"

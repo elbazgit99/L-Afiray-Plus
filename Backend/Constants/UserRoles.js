@@ -1,6 +1,6 @@
 
 const ROLES = {
-     ADMIN : 'ADMIN',
+     MODERATOR : 'MODERATOR',
     PARTNER: 'PARTNER',
     BUYER: 'BUYER',
 };

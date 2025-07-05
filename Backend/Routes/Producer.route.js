@@ -16,9 +16,9 @@ const ProducerRouter = express.Router();
 ProducerRouter.get('/', getAllProducers);
 ProducerRouter.get('/:id', getProducerById);
 
-// Protected routes: Only Partners and Admins can perform CRUD on Producers
-ProducerRouter.post('/', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN]), createProducer);
-ProducerRouter.put('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN]), updateProducer);
-ProducerRouter.delete('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN]), deleteProducer);
+// Protected routes: Only Partners and Moderators can perform CRUD on Producers
+ProducerRouter.post('/', authMiddleware, authorize([ROLES.PARTNER, ROLES.MODERATOR]), createProducer);
+ProducerRouter.put('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.MODERATOR]), updateProducer);
+ProducerRouter.delete('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.MODERATOR]), deleteProducer);
 
 export default ProducerRouter;

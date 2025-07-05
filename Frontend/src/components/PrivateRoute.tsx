@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 
 interface PrivateRouteProps {
   children: React.ReactNode;
-  roles: 'ADMIN' | 'PARTNER' | 'BUYER' | ('ADMIN' | 'PARTNER' | 'BUYER')[];
+      roles: 'MODERATOR' | 'PARTNER' | 'BUYER' | ('MODERATOR' | 'PARTNER' | 'BUYER')[];
 }
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, roles }) => {

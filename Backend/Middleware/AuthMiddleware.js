@@ -1,6 +1,4 @@
 import jwt from "jsonwebtoken";
-// Note: No need to import User model here if decoded token contains id and role.
-// If you need more user details, you would fetch it here: import User from '../Models/User.js';
 
 // Auth middleware for protecting routes
 export const authMiddleware = (req, res, next) => {
@@ -30,7 +28,7 @@ export const authMiddleware = (req, res, next) => {
 };
 
 // Authorization middleware for role-based access control
-// Takes an array of allowed roles (e.g., ['ADMIN', 'PARTNER'])
+// Takes an array of allowed roles (e.g., ['MODERATOR', 'PARTNER'])
 export const authorize = (allowedRoles) => {
     return (req, res, next) => {
         // req.user should have been populated by authMiddleware before this runs

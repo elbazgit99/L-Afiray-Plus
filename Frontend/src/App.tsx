@@ -11,14 +11,14 @@ import LoginPage from '@/features/layout/login-form';
 import RegisterPage from '@/features/layout/register';
 import HomePage from '@/features/pages/HomePage';
 
-// Admin Dashboard Components
-import AdminDashboardLayout from '@/features/layout/AdminDashboardLayout';
-import AdminHomePage from '@/components/home-dash';
-import { TableUsers } from '@/components/table-users';
+// Moderator Dashboard Components
+import ModeratorDashboardLayout from '@/features/layout/ModeratorDashboardLayout';
+import ModeratorHomePage from '@/components/home-dash';
 import UpdateUserForm from '@/components/form-update';
-import PartnerManagementPage from '@/features/admin/PartnerManagementPage';
-import ContentModerationPage from '@/features/admin/ContentModerationPage';
-import PlatformAnalyticsPage from '@/features/admin/PlatformAnalyticsPage';
+import UserManagementPage from '@/features/moderator/UserManagementPage';
+import PartnerManagementPage from '@/features/moderator/PartnerManagementPage';
+import ContentModerationPage from '@/features/moderator/ContentModerationPage';
+import PlatformAnalyticsPage from '@/features/moderator/PlatformAnalyticsPage';
 
 // Partner Dashboard Components
 import PartnerDashboardLayout from '@/features/layout/PartnerDashboardLayout';
@@ -33,6 +33,7 @@ import BuyerDashboardLayout from '@/features/layout/BuyerDashboardLayout';
 import BuyerProfilePage from '@/features/buyer/BuyerProfilePage';
 import BuyerHomePage from '@/features/buyer/BuyerHomePage';
 import CarPartsCatalogPage from '@/features/buyer/CarPartsCatalogPage';
+import ApprovalPendingPage from '@/features/pages/ApprovalPendingPage';
 import BuyerOrdersPage from '@/features/buyer/BuyerOrdersPage';
 import CheckoutPage from '@/features/buyer/CheckoutPage';
 
@@ -61,16 +62,16 @@ const App: React.FC = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/approval-pending" element={<ApprovalPendingPage />} />
             <Route path="/parts-catalog" element={<CarPartsCatalogPage />} />
 
-
-            {/* Admin Protected Routes */}
-            <Route path="/admin-dashboard" element={<PrivateRoute roles="ADMIN"><AdminDashboardLayout /></PrivateRoute>}>
-              <Route index element={<AdminHomePage />} />
-              <Route path="users" element={<TableUsers />} />
+                    {/* Moderator Protected Routes */}
+                <Route path="/moderator-dashboard" element={<PrivateRoute roles="MODERATOR"><ModeratorDashboardLayout /></PrivateRoute>}>
+            <Route index element={<ModeratorHomePage />} />
+              <Route path="users" element={<UserManagementPage />} />
               <Route path="users/update/:id" element={<UpdateUserForm />} />
               <Route path="partners" element={<PartnerManagementPage />} />
-              <Route path="inventory" element={<PartnerListingsPage />} /> {/* Admin can view/manage inventory via PartnerListingsPage */}
+              <Route path="inventory" element={<PartnerListingsPage />} /> {/* Moderator can view/manage inventory via PartnerListingsPage */}
               <Route path="content-moderation" element={<ContentModerationPage />} />
               <Route path="analytics" element={<PlatformAnalyticsPage />} />
             </Route>

@@ -1,11 +1,10 @@
-// Backend/Models/User.model.js
 import mongoose from 'mongoose';
 import ROLES from '../Constants/UserRoles.js'; // Adjust path as necessary
 
 const userSchema = new mongoose.Schema({
     role: {
         type: String,
-        enum: [ROLES.PARTNER, ROLES.BUYER , ROLES.ADMIN], // Using the constants here
+        enum: [ROLES.PARTNER, ROLES.BUYER , ROLES.MODERATOR], // Using the constants here
         required: true
     },
     name: {
@@ -38,7 +37,8 @@ const userSchema = new mongoose.Schema({
         required: function() { return this.role === ROLES.BUYER; }
     },
     phone: {
-        type: String
+        type: String,
+        required : [true , "phone number is required"]
     },
     // Partner approval fields
     isApproved: {

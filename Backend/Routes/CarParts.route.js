@@ -10,6 +10,7 @@ import {
 } from '../Controllers/CarParts.controller.js';
 import { authMiddleware, authorize } from '../Middleware/AuthMiddleware.js';
 import ROLES from '../Constants/UserRoles.js';
+import upload from '../Middleware/uploadMiddleware.js';
 
 const CarPartsRouter = express.Router();
 
@@ -23,10 +24,10 @@ CarPartsRouter.get('/:id', getCarPartById); // Removed authMiddleware and author
 CarPartsRouter.get('/carModel/:carModelId', getCarPartsByCarModel); // Removed authMiddleware and authorize
 CarPartsRouter.get('/producer/:producerId', getCarPartsByProducer); // Removed authMiddleware and authorize
 
-// Protected routes: Only Partners and Admins can perform CRUD on Car Parts
-CarPartsRouter.post('/', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN]), createCarPart);
-CarPartsRouter.put('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN]), updateCarPart);
-CarPartsRouter.delete('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.ADMIN]), deleteCarPart);
+// Protected routes: Only Partners and Moderators can perform CRUD on Car Parts
+CarPartsRouter.post('/', authMiddleware, authorize([ROLES.PARTNER, ROLES.MODERATOR]), upload.single('imageFile'), createCarPart);
+CarPartsRouter.put('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.MODERATOR]), upload.single('imageFile'), updateCarPart);
+CarPartsRouter.delete('/:id', authMiddleware, authorize([ROLES.PARTNER, ROLES.MODERATOR]), deleteCarPart);
 
 
 export default CarPartsRouter;
