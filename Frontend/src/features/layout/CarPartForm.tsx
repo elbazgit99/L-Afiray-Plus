@@ -12,6 +12,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Upload, X } from 'lucide-react';
+import { validateImageFile, createImagePreview } from '@/lib/imageUtils';
 
 interface Producer {
   _id: string;
@@ -65,26 +66,25 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
 
   const modelsForSelectedProducerForParts = carModels.filter(model => model.producer === selectedProducerIdForPart);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
-        toast.error('Image too large', { description: 'Please select an image smaller than 5MB' });
-        return;
-      }
-
-      if (!file.type.startsWith('image/')) {
-        toast.error('Invalid file type', { description: 'Please select an image file' });
+      // Validate the image file
+      const validation = validateImageFile(file);
+      if (!validation.isValid) {
+        toast.error('Invalid Image', { description: validation.error });
         return;
       }
 
       setSelectedImageFile(file);
       
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
-      };
-      reader.readAsDataURL(file);
+      try {
+        const preview = await createImagePreview(file);
+        setImagePreview(preview);
+      } catch (error) {
+        toast.error('Image Preview Error', { description: 'Failed to create image preview' });
+        setSelectedImageFile(null);
+      }
     }
   };
 

@@ -28,6 +28,7 @@ interface CarPart {
   name: string;
   description: string;
   imageUrl: string;
+  imageFilename?: string;
   price: number;
   brand: string;
   category: string;

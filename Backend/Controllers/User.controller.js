@@ -13,7 +13,7 @@ const generateToken = (id, role) => {
 
 // Register a new user
 export const registerUser = async (req, res) => {
-    const { name, email, password, role, companyName, companyAddress, shippingAddress, phone } = req.body;
+    const { name, email, password, role, companyName, companyAddress, phone } = req.body;
 
     try {
         // Check if user already exists
@@ -45,10 +45,7 @@ export const registerUser = async (req, res) => {
             // Partners always start as unapproved and need moderator approval
             newUserFields.isApproved = false;
         } else if (role === ROLES.BUYER) {
-            if (!shippingAddress) {
-                return res.status(400).json({ message: 'Shipping address is required for buyers' });
-            }
-            newUserFields.shippingAddress = shippingAddress;
+            // No additional fields required for buyers
         } else if (role === ROLES.MODERATOR) {
             // Moderator specific fields can be added here if needed, or simply no additional fields
         } else {
@@ -172,7 +169,7 @@ export const getUserById = async (req, res) => {
 
 // Create new user (Moderator only - for manual adding of partners by moderator)
 export const createUser = async (req, res) => {
-    const { name, email, password, role, companyName, companyAddress, shippingAddress, phone } = req.body;
+    const { name, email, password, role, companyName, companyAddress, phone } = req.body;
 
     try {
         // Check if user already exists
@@ -227,11 +224,8 @@ export const createUser = async (req, res) => {
                 newUserFields.isApproved = false;
             }
         } else if (role === ROLES.BUYER) {
-            if (!shippingAddress) {
-                return res.status(400).json({ message: 'Shipping address is required for buyers' });
-            }
-            newUserFields.shippingAddress = shippingAddress;
-            } else if (role === ROLES.MODERATOR) {
+            // No additional fields required for buyers
+        } else if (role === ROLES.MODERATOR) {
         // No additional fields specifically required for MODERATOR on creation
         } else {
             return res.status(400).json({ message: 'Invalid user role' });
@@ -258,7 +252,7 @@ export const createUser = async (req, res) => {
 
 // Update user (Moderator or User themselves)
 export const updateUser = async (req, res) => {
-    const { name, email, password, role, companyName, companyAddress, shippingAddress, phone } = req.body;
+    const { name, email, password, role, companyName, companyAddress, phone } = req.body;
 
     try {
         const user = await User.findById(req.params.id);
@@ -283,7 +277,6 @@ export const updateUser = async (req, res) => {
         if (role) user.role = role;
         if (companyName) user.companyName = companyName;
         if (companyAddress) user.companyAddress = companyAddress;
-        if (shippingAddress) user.shippingAddress = shippingAddress;
         if (phone) user.phone = phone;
 
         const updatedUser = await user.save();

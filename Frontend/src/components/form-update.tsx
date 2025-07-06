@@ -14,7 +14,6 @@ interface User {
   role: string;
   companyName?: string;
   companyAddress?: string;
-  shippingAddress?: string;
   phone?: string;
 }
 
@@ -30,7 +29,6 @@ const UpdateUserForm: React.FC = () => {
   const [role, setRole] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [companyAddress, setCompanyAddress] = useState('');
-  const [shippingAddress, setShippingAddress] = useState('');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -44,7 +42,6 @@ const UpdateUserForm: React.FC = () => {
         setRole(response.data.role);
         setCompanyName(response.data.companyName || '');
         setCompanyAddress(response.data.companyAddress || '');
-        setShippingAddress(response.data.shippingAddress || '');
         setPhone(response.data.phone || '');
       } catch (error: any) {
         console.error("Failed to fetch user:", error);
@@ -67,8 +64,6 @@ const UpdateUserForm: React.FC = () => {
       if (role === 'PARTNER') {
         updatedData.companyName = companyName;
         updatedData.companyAddress = companyAddress;
-      } else if (role === 'BUYER') {
-        updatedData.shippingAddress = shippingAddress;
       }
 
       await axios.put(`${API_BASE_URL}/users/${id}`, updatedData);
@@ -134,12 +129,7 @@ const UpdateUserForm: React.FC = () => {
             </>
           )}
 
-          {role === 'BUYER' && (
-            <div>
-              <Label htmlFor="shippingAddress" className="text-black dark:text-white">Shipping Address</Label>
-              <Input id="shippingAddress" type="text" value={shippingAddress} onChange={(e) => setShippingAddress(e.target.value)} required={role === 'BUYER'} className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
-            </div>
-          )}
+
 
           <Button type="submit" className="w-full bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity" disabled={loading}>
             {loading ? "Updating..." : "Update User"}

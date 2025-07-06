@@ -1,6 +1,19 @@
 import CarPart from '../Models/CarParts.js';
 import mongoose from 'mongoose';
 import { validationResult } from 'express-validator';
+import fs from 'fs';
+import path from 'path';
+
+// Helper function to delete image file
+const deleteImageFile = (filename) => {
+    if (filename) {
+        const filePath = path.join('uploads', filename);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            console.log('Deleted image file:', filename);
+        }
+    }
+};
 
 // Get all car parts
 export const getAllCarParts = async (req, res) => {    
@@ -27,34 +40,50 @@ export const getCarPartById = async (req, res) => {
 export const createCarPart = async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+        console.error('Validation errors:', errors.array());
         return res.status(400).json({ errors: errors.array() });
     }
 
     try {
         const { name, description, price, brand, compatibility, category, model, producer } = req.body;
+        
+        console.log('Creating car part with data:', {
+            name, description, price, brand, compatibility, category, model, producer
+        });
+        console.log('File upload info:', req.file);
 
         // Validate model and producer
         if (!mongoose.Types.ObjectId.isValid(model)) {
+            console.error('Invalid model ID:', model);
             return res.status(400).json({ error: 'Invalid car model ID' });
         }
         if (!mongoose.Types.ObjectId.isValid(producer)) {
+            console.error('Invalid producer ID:', producer);
             return res.status(400).json({ error: 'Invalid producer ID' });
         }
 
         // Handle image upload
-        let imageUrl = '';
-        if (req.file) {
-            // Create the full URL for the uploaded image
-            const baseUrl = `${req.protocol}://${req.get('host')}`;
-            imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
-        } else {
-            return res.status(400).json({ error: 'Image is required' });
+        if (!req.file) {
+            return res.status(400).json({ error: 'Image file is required' });
         }
+
+        // Create image URL and store filename
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+        const imageFilename = req.file.filename;
+        
+        console.log('Image uploaded:', {
+            filename: imageFilename,
+            url: imageUrl,
+            size: req.file.size,
+            mimetype: req.file.mimetype
+        });
 
         const newCarPart = new CarPart({
             name,
             description,
             imageUrl,
+            imageFilename,
             price,
             brand,
             compatibility,
@@ -63,12 +92,16 @@ export const createCarPart = async (req, res) => {
             producer
         });
 
+        console.log('Saving car part:', newCarPart);
         await newCarPart.save();
+        console.log('Car part saved successfully:', newCarPart._id);
         res.status(201).json(newCarPart);
     } catch (err) {
+        console.error('Error creating car part:', err);
         res.status(400).json({ error: err.message });
     }
 };
+
 // Update a car part by ID
 export const updateCarPart = async (req, res) => {
     const errors = validationResult(req);
@@ -91,9 +124,23 @@ export const updateCarPart = async (req, res) => {
         let updateData = { name, description, price, brand, compatibility, category, model, producer };
         
         if (req.file) {
-            // Create the full URL for the uploaded image
+            // Get the current car part to delete old image
+            const currentCarPart = await CarPart.findById(req.params.id);
+            if (currentCarPart && currentCarPart.imageFilename) {
+                deleteImageFile(currentCarPart.imageFilename);
+            }
+            
+            // Create new image URL and filename
             const baseUrl = `${req.protocol}://${req.get('host')}`;
             updateData.imageUrl = `${baseUrl}/uploads/${req.file.filename}`;
+            updateData.imageFilename = req.file.filename;
+            
+            console.log('Image updated:', {
+                filename: req.file.filename,
+                url: updateData.imageUrl,
+                size: req.file.size,
+                mimetype: req.file.mimetype
+            });
         }
 
         const updatedCarPart = await CarPart.findByIdAndUpdate(
@@ -115,6 +162,12 @@ export const deleteCarPart = async (req, res) => {
     try {
         const deletedCarPart = await CarPart.findByIdAndDelete(req.params.id);
         if (!deletedCarPart) return res.status(404).json({ error: 'Car part not found' });
+        
+        // Delete the associated image file
+        if (deletedCarPart.imageFilename) {
+            deleteImageFile(deletedCarPart.imageFilename);
+        }
+        
         res.json({ message: 'Car part deleted successfully' });
     } catch (err) {
         res.status(500).json({ error: err.message });

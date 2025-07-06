@@ -32,10 +32,10 @@ const userSchema = new mongoose.Schema({
         required: function() { return this.role === ROLES.PARTNER; }
     },
     // Buyer-specific fields
-    shippingAddress: {
-        type: String,
-        required: function() { return this.role === ROLES.BUYER; }
-    },
+    // shippingAddress: {
+    //     type: String,
+    //     required: function() { return this.role === ROLES.BUYER; }
+    // },
     phone: {
         type: String,
         required : [true , "phone number is required"]
@@ -45,10 +45,10 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
-    approvalCode: {
-        type: String,
-        default: null
-    },
+    // approvalCode: {
+    //     type: String,
+    //     default: null
+    // },
     createdAt: {
         type: Date,
         default: Date.now

@@ -14,7 +14,6 @@ import {
   SidebarMenuButton
 } from '@/components/ui/sidebar';
 import { 
-  Home, 
   Users, 
   Building2, 
   Package, 
@@ -35,14 +34,6 @@ const ModeratorDashboardLayout: React.FC = () => {
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/moderator-dashboard">
-                    <Home className="h-4 w-4" />
-                    <span>Dashboard Home</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link to="/moderator-dashboard/users">

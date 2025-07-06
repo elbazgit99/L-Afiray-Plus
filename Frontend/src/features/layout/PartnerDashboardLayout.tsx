@@ -14,7 +14,6 @@ import {
   SidebarMenuButton
 } from '@/components/ui/sidebar';
 import { 
-  Home, 
   Car, 
   Package, 
   BarChart3, 
@@ -36,14 +35,6 @@ const PartnerDashboardLayout: React.FC = () => {
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/partner-dashboard">
-                    <Home className="h-4 w-4" />
-                    <span>Dashboard Home</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link to="/partner-dashboard/listings">

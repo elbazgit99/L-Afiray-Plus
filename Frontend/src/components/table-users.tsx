@@ -11,7 +11,6 @@ interface User {
   role: string;
   companyName?: string;
   companyAddress?: string;
-  shippingAddress?: string;
   phone?: string;
 }
 
@@ -90,8 +89,8 @@ const TableUsers: React.FC = () => {
               <td className="px-6 py-4 whitespace-nowrap">{user.role}</td>
               <td className="px-6 py-4 whitespace-nowrap">
                 {user.role === 'PARTNER' && `${user.companyName || 'N/A'}, ${user.companyAddress || 'N/A'}`}
-                {user.role === 'BUYER' && user.shippingAddress || 'N/A'}
-                                        {user.role === 'MODERATOR' && 'N/A'}
+                {user.role === 'BUYER' && 'N/A'}
+                {user.role === 'MODERATOR' && 'N/A'}
               </td>
               <td className="px-6 py-4 whitespace-nowrap flex space-x-2">
                 <Button

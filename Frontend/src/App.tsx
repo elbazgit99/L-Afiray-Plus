@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
-import { Toaster } from 'sonner';
+import { Toaster } from '@/components/ui/sonner';
 import PrivateRoute from '@/components/PrivateRoute';
 import { Button } from '@/components/ui/button';
 import { ThemeProvider } from "@/components/theme-provider"
@@ -13,7 +13,6 @@ import HomePage from '@/features/pages/HomePage';
 
 // Moderator Dashboard Components
 import ModeratorDashboardLayout from '@/features/layout/ModeratorDashboardLayout';
-import ModeratorHomePage from '@/components/home-dash';
 import UpdateUserForm from '@/components/form-update';
 import UserManagementPage from '@/features/moderator/UserManagementPage';
 import PartnerManagementPage from '@/features/moderator/PartnerManagementPage';
@@ -22,7 +21,6 @@ import PlatformAnalyticsPage from '@/features/moderator/PlatformAnalyticsPage';
 
 // Partner Dashboard Components
 import PartnerDashboardLayout from '@/features/layout/PartnerDashboardLayout';
-import PartnerHomePage from '@/features/partner/PartnerHomePage'
 import PartnerOrdersPage from '@/features/partner/PartnerOrdersPage';
 import PartnerSalesReportsPage from '@/features/partner/PartnerSalesReportsPage';
 import PartnerProfilePage from '@/features/partner/PartnerProfilePage';
@@ -31,7 +29,6 @@ import PartnerListingsPage from '@/features/partner/PartnerListingsPage'; // Imp
 // Buyer Dashboard Components
 import BuyerDashboardLayout from '@/features/layout/BuyerDashboardLayout';
 import BuyerProfilePage from '@/features/buyer/BuyerProfilePage';
-import BuyerHomePage from '@/features/buyer/BuyerHomePage';
 import CarPartsCatalogPage from '@/features/buyer/CarPartsCatalogPage';
 import ApprovalPendingPage from '@/features/pages/ApprovalPendingPage';
 import BuyerOrdersPage from '@/features/buyer/BuyerOrdersPage';
@@ -65,9 +62,9 @@ const App: React.FC = () => {
             <Route path="/approval-pending" element={<ApprovalPendingPage />} />
             <Route path="/parts-catalog" element={<CarPartsCatalogPage />} />
 
-                    {/* Moderator Protected Routes */}
-                <Route path="/moderator-dashboard" element={<PrivateRoute roles="MODERATOR"><ModeratorDashboardLayout /></PrivateRoute>}>
-            <Route index element={<ModeratorHomePage />} />
+            {/* Moderator Protected Routes */}
+            <Route path="/moderator-dashboard" element={<PrivateRoute roles="MODERATOR"><ModeratorDashboardLayout /></PrivateRoute>}>
+              <Route index element={<UserManagementPage />} />
               <Route path="users" element={<UserManagementPage />} />
               <Route path="users/update/:id" element={<UpdateUserForm />} />
               <Route path="partners" element={<PartnerManagementPage />} />
@@ -78,7 +75,7 @@ const App: React.FC = () => {
 
             {/* Partner Protected Routes */}
             <Route path="/partner-dashboard" element={<PrivateRoute roles="PARTNER"><PartnerDashboardLayout /></PrivateRoute>}>
-              <Route index element={<PartnerHomePage />} />
+              <Route index element={<PartnerListingsPage />} />
               <Route path="listings" element={<PartnerListingsPage />} /> {/* Render PartnerListingsPage here */}
               <Route path="orders" element={<PartnerOrdersPage />} />
               <Route path="sales-reports" element={<PartnerSalesReportsPage />} />
@@ -87,7 +84,7 @@ const App: React.FC = () => {
 
             {/* Buyer Protected Routes */}
             <Route path="/buyer-dashboard" element={<PrivateRoute roles="BUYER"><BuyerDashboardLayout /></PrivateRoute>}>
-              <Route index element={<BuyerHomePage />} />
+              <Route index element={<BuyerProfilePage />} />
               <Route path="profile" element={<BuyerProfilePage />} />
               <Route path="parts" element={<CarPartsCatalogPage />} />
               <Route path="orders" element={<BuyerOrdersPage />} />
@@ -97,7 +94,7 @@ const App: React.FC = () => {
             {/* Fallback route for unmatched paths */}
             <Route path="*" element={<NoMatch />} />
           </Routes>
-          <Toaster richColors />
+          <Toaster />
         </AuthProvider>
       </ThemeProvider>
     </Router>

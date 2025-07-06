@@ -12,7 +12,6 @@ interface User {
   isApproved?: boolean;
   companyName?: string;
   companyAddress?: string;
-  shippingAddress?: string;
   phone?: string;
 }
 

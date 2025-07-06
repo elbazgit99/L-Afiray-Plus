@@ -17,6 +17,7 @@ interface CarPart {
   name: string;
   description: string;
   imageUrl: string;
+  imageFilename?: string;
   price: number;
   brand: string;
   category: string;
@@ -58,7 +59,7 @@ const ProducerList: React.FC<ProducerListProps> = ({
   return (
     <section className="bg-gray-50 dark:bg-zinc-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
       <h2 className="text-2xl font-bold mb-6 flex items-center text-black dark:text-white">
-        Existing Car Producers, Models & Parts
+        Existing Categories
       </h2>
       {producers.length === 0 && !loading ? (
         <p className="text-gray-600 dark:text-gray-400 text-center py-4 italic">No car producers created yet. Start by adding one above!</p>

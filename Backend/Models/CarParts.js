@@ -13,7 +13,11 @@ const CarPartSchema = new mongoose.Schema({
      },
      imageUrl: {
           type: String,
-          required: [true, 'Image URL is required']
+          required: [true, 'Image is required']
+     },
+     imageFilename: {
+          type: String,
+          required: [true, 'Image filename is required']
      },
      price: {
           type: Number,

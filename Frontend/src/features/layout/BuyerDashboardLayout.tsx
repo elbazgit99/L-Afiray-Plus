@@ -14,7 +14,6 @@ import {
   SidebarMenuButton
 } from '@/components/ui/sidebar';
 import { 
-  Home, 
   User, 
   Package, 
   ShoppingCart, 
@@ -33,14 +32,6 @@ const BuyerDashboardLayout: React.FC = () => {
           </SidebarHeader>
           <SidebarContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/buyer-dashboard">
-                    <Home className="h-4 w-4" />
-                    <span>Dashboard Home</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link to="/buyer-dashboard/profile">
