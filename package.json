@@ -6,7 +6,8 @@
   "type": "module",
   "main": "server.js",
   "scripts": {
-    "dev": "nodemon Backend/server.js"
+    "dev": "nodemon Backend/server.js",
+    "setup-moderator": "node Backend/setup-moderator.js"
   },
   "repository": {
     "type": "git",

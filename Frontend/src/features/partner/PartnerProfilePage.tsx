@@ -83,7 +83,7 @@ const PartnerProfilePage: React.FC = () => {
           </h3>
           <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
             <li>• Our moderation team will review your application</li>
-            <li>• You'll receive an email notification once approved</li>
+                            <li>• You'll receive an email notification once approved</li>
             <li>• Once approved, you can access all partner features</li>
             <li>• You can start adding car models and parts to your inventory</li>
           </ul>

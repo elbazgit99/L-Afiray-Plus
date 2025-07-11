@@ -1,92 +1,340 @@
-# Lafiray.ma: Your Marketplace for Used Car Parts
+# L'Afiray.ma - Car Parts Marketplace
 
-## 🛠️ Project Overview
-Lafiray.ma is an online platform designed to revolutionize the used car parts market. It connects individual buyers with verified seller partners, offering a transparent and secure environment to buy and sell used car components. The platform addresses market fragmentation and aims to provide efficient search, quality assurance, and reliable transactions.
+A comprehensive car parts marketplace platform built with React, Node.js, and MongoDB. The platform connects car parts producers/partners with buyers, featuring a robust approval system and email notifications.
 
-## ✨ Key Features
+## 🚀 Features
 
-### Buyer Frontend
-Intuitive Search & Discovery: Find parts by make, model, year, part name, VIN. Advanced filters available.
+### Core Features
+- **Multi-Role User System**: Moderators, Partners (Producers), and Buyers
+- **Partner Approval System**: Moderators approve/reject partner applications
+- **Email Notifications**: Automatic email notifications for approval/rejection
+- **Car Parts Management**: Add, edit, and manage car parts inventory
+- **Car Models Management**: Organize parts by car models
+- **User Management**: Complete user CRUD operations
+- **Responsive Design**: Modern UI with dark/light theme support
 
-Secure Transactions: Integrated shopping cart and secure checkout process.
+### User Roles
 
-Order Tracking & Reviews: Monitor orders and provide feedback on sellers and parts.
+#### 🛡️ Moderator
+- Approve/reject partner applications
+- Manage all users and partners
+- View platform analytics
+- Content moderation
+- Email notifications for partner status changes
 
-### Seller Partner Frontend
-Efficient Listing Management: Easy interface for adding, updating, and deleting part listings with images and details.
+#### 🏢 Partner (Producer)
+- Register company information
+- Add car models and parts
+- Manage inventory
+- View sales reports
+- Order management
+- Profile management
 
-Inventory & Order Tracking: Manage stock levels and view incoming orders with status updates.
+#### 🛒 Buyer
+- Browse car parts catalog
+- Search and filter parts
+- Place orders
+- View order history
+- Profile management
 
-Sales Reporting: Dashboard for sales performance and analytics.
+## 🛠️ Tech Stack
 
-### Admin Panel
-User & Seller Management: Control accounts and approve seller applications.
+### Frontend
+- **React 19** with TypeScript
+- **Vite** for build tooling
+- **Tailwind CSS** for styling
+- **Radix UI** components
+- **React Router** for navigation
+- **Axios** for API calls
+- **Sonner** for notifications
 
-Content Moderation & Dispute Resolution: Oversee listings, reviews, and mediate disputes.
+### Backend
+- **Node.js** with Express
+- **MongoDB** with Mongoose
+- **JWT** for authentication
+- **bcryptjs** for password hashing
+- **Nodemailer** for email notifications
+- **Multer** for file uploads
+- **CORS** enabled
 
-Platform Analytics: Monitor overall platform performance and configure system settings.
+## 📋 Prerequisites
 
-## 🚀 Technical Stack
+- Node.js (v18 or higher)
+- MongoDB (local or cloud)
+- Git
 
-### Frontend:
+## 🚀 Installation & Setup
 
-React.js
+### 1. Clone the Repository
+```bash
+git clone https://github.com/elbazgit99/L-Afiray.ma.git
+cd L-Afiray.ma
+```
 
-Tailwind CSS
+### 2. Install Dependencies
+```bash
+# Install backend dependencies
+npm install
 
-Shadcn/UI
+# Install frontend dependencies
+cd Frontend
+npm install
+cd ..
+```
 
-Axios (for API communication)
+### 3. Environment Configuration
 
-React Router (for navigation)
+Create a `.env` file in the root directory:
 
-useState and useEffect (for State Management)
+```env
+# Server Configuration
+PORT=5000
+JWT_SECRET=your-jwt-secret-key-here
 
-### Backend:
+# Database Configuration
+DB_URI=mongodb://localhost:27017/lafiray_db
+# Or use MongoDB Atlas:
+# DB_URI=mongodb+srv://username:password@cluster.mongodb.net/lafiray_db
 
-Node.js with Express.js (RESTful API)
+# Email Configuration (for partner notifications)
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-app-password
+FRONTEND_URL=http://localhost:5173
 
-JSON Web Tokens (JWT) for Authentication
+# Moderator Configuration
+MODERATOR_EMAIL=lafiray@moderator.ma
+MODERATOR_PASSWORD=lafiray@moderator.ma
+MODERATOR_NAME=L'Afiray Moderator
+MODERATOR_PHONE=+2125 000 00000
 
-Protected Routes & Role-Based Access Control (RBAC): Ensures only authorized users (buyers, sellers, admins) can access specific functionalities based on their assigned roles.
+# OpenAI Configuration (optional)
+OPENAI_API_KEY=your_openai_api_key_here
+```
 
-### Database:
+### 4. Setup Moderator Account
+```bash
+npm run setup-moderator
+```
 
-MongoDB (NoSQL)
+### 5. Start the Application
 
-Mongoose (ODM)
+#### Start Backend Server
+```bash
+npm run dev
+```
+Backend will run on: `http://localhost:5000`
 
-## 📦 Getting Started
+#### Start Frontend Development Server
+```bash
+cd Frontend
+npm run dev
+```
+Frontend will run on: `http://localhost:5173` or `http://localhost:5174`
 
-Prerequisites
-Node.js (v18+)
+## 👥 Default Users
 
-MongoDB Atlas account or local MongoDB instance
+### Moderator Account
+- **Email**: `lafiray@moderator.ma`
+- **Password**: `lafiray@moderator.ma`
+- **Access**: Full moderator dashboard
 
-Clone the repository: git clone https://github.com/elbazgit99/L-Afiray.ma.git
+### Test Partner Account
+- **Email**: `lafiray@partner4.ma`
+- **Password**: (set during registration)
+- **Status**: Approved
 
-Navigate to the backend directory: cd L'Afiray.ma/Backend
+## 🔧 API Endpoints
 
-Install dependencies: npm install
+### Authentication
+- `POST /api/users/register` - Register new user
+- `POST /api/users/login` - User login
+- `GET /api/users/test-email` - Test email configuration
 
-Create a .env file with your DB_URI, JWT_SECRET, and Firebase credentials if using Firestore.
+### User Management (Moderator Only)
+- `GET /api/users` - Get all users
+- `GET /api/users/partners` - Get all partners
+- `GET /api/users/:id` - Get user by ID
+- `POST /api/users` - Create new user
+- `PUT /api/users/:id` - Update user
+- `DELETE /api/users/:id` - Delete user
+- `PUT /api/users/:id/approve` - Approve partner
+- `PUT /api/users/:id/reject` - Reject partner
 
-Start the backend server: npm start or npm run dev (if using nodemon).
+### Car Parts Management
+- `GET /api/carparts` - Get all car parts
+- `POST /api/carparts` - Create new car part
+- `PUT /api/carparts/:id` - Update car part
+- `DELETE /api/carparts/:id` - Delete car part
 
-Frontend Setup
-Navigate to the frontend directory: cd L'Afiray.ma/Frontend (or wherever your React app is).
+### Car Models Management
+- `GET /api/models` - Get all car models
+- `POST /api/models` - Create new car model
+- `PUT /api/models/:id` - Update car model
+- `DELETE /api/models/:id` - Delete car model
 
-Install dependencies: npm install
+### Producer Management
+- `GET /api/producers` - Get all producers
+- `POST /api/producers` - Create new producer
+- `PUT /api/producers/:id` - Update producer
+- `DELETE /api/producers/:id` - Delete producer
 
-Start the frontend development server: npm run dev
+## 📧 Email System
 
-## 💡 Future Enhancements
-AI-Powered Part Recognition (Google Lens-like)
+The platform includes automatic email notifications for partner approval/rejection:
 
-Integrated Logistics & Shipping Solutions
+### Email Templates
+- **Partner Approved**: Welcome email with login instructions
+- **Partner Rejected**: Professional rejection with next steps
 
-Mobile Applications (iOS/Android)
+### Email Configuration
+For Gmail:
+1. Enable 2-factor authentication
+2. Generate an App Password
+3. Use the App Password in `EMAIL_PASSWORD`
 
-Firestore (for real-time features like chat, order updates)
+## 🔐 Security Features
 
-Advanced Image Management (Optimization & CDN): Implement robust solutions for serving optimized part images quickly via Content Delivery Networks.
+- JWT-based authentication
+- Password hashing with bcrypt
+- Role-based access control
+- CORS protection
+- Input validation
+- Secure file uploads
+
+## 🎨 UI Components
+
+The application uses a custom UI component library built with:
+- Radix UI primitives
+- Tailwind CSS styling
+- Dark/light theme support
+- Responsive design
+- Accessibility features
+
+## 📁 Project Structure
+
+```
+L-Afiray.ma/
+├── Backend/
+│   ├── Config/
+│   │   ├── database.js
+│   │   └── emailService.js
+│   ├── Constants/
+│   │   └── UserRoles.js
+│   ├── Controllers/
+│   │   ├── User.controller.js
+│   │   ├── CarParts.controller.js
+│   │   └── ...
+│   ├── Middleware/
+│   │   ├── AuthMiddleware.js
+│   │   └── uploadMiddleware.js
+│   ├── Models/
+│   │   ├── User.js
+│   │   ├── CarParts.js
+│   │   └── ...
+│   ├── Routes/
+│   │   ├── User.route.js
+│   │   ├── CarParts.route.js
+│   │   └── ...
+│   └── server.js
+├── Frontend/
+│   ├── src/
+│   │   ├── components/
+│   │   │   ├── ui/
+│   │   │   └── ...
+│   │   ├── features/
+│   │   │   ├── moderator/
+│   │   │   ├── partner/
+│   │   │   └── buyer/
+│   │   ├── context/
+│   │   │   └── AuthContext.tsx
+│   │   └── ...
+│   └── ...
+├── uploads/
+└── package.json
+```
+
+## 🚀 Deployment
+
+### Backend Deployment
+1. Set up MongoDB (local or cloud)
+2. Configure environment variables
+3. Install dependencies: `npm install`
+4. Start server: `npm run dev` or `npm start`
+
+### Frontend Deployment
+1. Build the project: `npm run build`
+2. Deploy the `dist` folder to your hosting service
+3. Configure API base URL for production
+
+## 🧪 Testing
+
+### Test Email Configuration
+Visit: `http://localhost:5000/api/users/test-email`
+
+### Test Partner Registration
+1. Register as a partner
+2. Check approval status
+3. Verify email notifications
+
+### Test Moderator Functions
+1. Login as moderator
+2. Approve/reject partners
+3. Manage users and content
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+1. **Email Not Sending**
+   - Check email credentials in `.env`
+   - Verify SMTP settings
+   - Test email configuration endpoint
+
+2. **Database Connection Issues**
+   - Verify MongoDB is running
+   - Check connection string in `.env`
+   - Ensure database exists
+
+3. **Login Issues**
+   - Verify user exists in database
+   - Check approval status for partners
+   - Ensure correct credentials
+
+4. **CORS Issues**
+   - Check frontend URL in CORS configuration
+   - Verify API base URL in frontend
+
+### Debug Steps
+1. Check server logs for errors
+2. Verify environment variables
+3. Test API endpoints directly
+4. Check browser console for frontend errors
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## 📄 License
+
+This project is licensed under the ISC License.
+
+## 👨‍💻 Author
+
+**Hamza Elbaz**
+- GitHub: [@elbazgit99](https://github.com/elbazgit99)
+- Project: [L'Afiray.ma](https://github.com/elbazgit99/L-Afiray.ma)
+
+## 🆘 Support
+
+For support and questions:
+- Create an issue on GitHub
+- Email: support@lafiray.ma
+- Phone: +212 5 00 00 00 00
+
+---
+
+**L'Afiray.ma** - Connecting car parts producers with buyers worldwide 🚗🔧

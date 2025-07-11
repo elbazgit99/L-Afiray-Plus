@@ -19,6 +19,14 @@ const deleteImageFile = (filename) => {
 export const getAllCarParts = async (req, res) => {    
     try {
         const carParts = await CarPart.find().populate('model').populate('producer');
+        console.log('Fetched car parts:', carParts.length);
+        if (carParts.length > 0) {
+            console.log('Sample car part with model:', {
+                partName: carParts[0].name,
+                modelName: carParts[0].model?.name,
+                modelEngine: carParts[0].model?.engine
+            });
+        }
         res.json(carParts);
     } catch (err) {
         res.status(500).json({ error: err.message });

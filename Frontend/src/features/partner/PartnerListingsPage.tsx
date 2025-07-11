@@ -20,6 +20,7 @@ interface Producer {
 interface CarModel {
   _id: string;
   name: string;
+  engine?: string;
   producer: string | { _id: string; name: string };
 }
 
@@ -163,17 +164,24 @@ const PartnerListingsPage: React.FC = () => {
     }
   }, [getProducers, notify]);
 
-  const addModel = useCallback(async (modelName: string, producerId: string) => {
+  const addModel = useCallback(async (modelName: string, producerId: string, engine?: string) => {
     if (modelName.trim() === '' || producerId === '') {
       notify('Input Error', 'Please select a producer and enter a car model name.', 'destructive');
       return;
     }
     setLoading(true);
     try {
-      const response = await axios.post<CarModel>(`${API_BASE_URL}/models`, {
+      const modelData: any = {
         name: modelName.trim(),
         producer: producerId,
-      });
+      };
+      
+      // Add engine field if provided
+      if (engine && engine.trim() !== '') {
+        modelData.engine = engine.trim();
+      }
+      
+      const response = await axios.post<CarModel>(`${API_BASE_URL}/models`, modelData);
       notify('Success!', `Model "${response.data.name}" added successfully!`);
       getModels();
     } catch (error: any) {

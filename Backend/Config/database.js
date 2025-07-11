@@ -3,11 +3,11 @@ import mongoose from 'mongoose'
 
 dotenv.config()
 
-const DB_URI = process.env.DB_URI || 'mongodb://localhost:27017/l-afiray'
+const DB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/l-afiray'
 export const connectDB = async() => {
      try{
-          if (!process.env.DB_URI) {
-               console.log("No DB_URI found in environment, using default localhost connection")
+          if (!process.env.MONGODB_URI) {
+               console.log("No MONGODB_URI found in environment, using default localhost connection")
           }
           await mongoose.connect(DB_URI)
           console.log("Database connected successfully")

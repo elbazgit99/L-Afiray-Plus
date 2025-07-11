@@ -7,6 +7,11 @@ const CarModelSchema = new mongoose.Schema({
           trim: true,
           minlength: [1, 'Car model name must be at least 1 character long']
      },
+     engine: {
+          type: String,
+          trim: true,
+          default: 'Not specified'
+     },
      // Reference to the Producer document
      producer: {
           type: mongoose.Schema.Types.ObjectId,

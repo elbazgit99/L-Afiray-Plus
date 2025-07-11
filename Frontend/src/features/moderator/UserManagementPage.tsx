@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { 
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '../../components/ui/select';
 
 interface User {
   _id: string;
@@ -39,9 +39,21 @@ const UserManagementPage: React.FC = () => {
 
   const fetchUsers = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/users`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const response = await axios.get(`${API_BASE_URL}/users`, { headers });
       setUsers(response.data);
     } catch (error: any) {
+      console.error('Error fetching users:', error);
       toast.error('Failed to fetch users', { description: error.response?.data?.message || 'Network error' });
     } finally {
       setLoading(false);
@@ -52,30 +64,66 @@ const UserManagementPage: React.FC = () => {
     if (!confirm('Are you sure you want to delete this user?')) return;
     
     try {
-      await axios.delete(`${API_BASE_URL}/users/${userId}`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      await axios.delete(`${API_BASE_URL}/users/${userId}`, { headers });
       toast.success('User deleted successfully');
       fetchUsers(); // Refresh the list
     } catch (error: any) {
+      console.error('Error deleting user:', error);
       toast.error('Failed to delete user', { description: error.response?.data?.message || 'Network error' });
     }
   };
 
   const approveUser = async (userId: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/users/${userId}/approve`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      await axios.put(`${API_BASE_URL}/users/${userId}/approve`, {}, { headers });
       toast.success('User approved successfully');
       fetchUsers(); // Refresh the list
     } catch (error: any) {
+      console.error('Error approving user:', error);
       toast.error('Failed to approve user', { description: error.response?.data?.message || 'Network error' });
     }
   };
 
   const rejectUser = async (userId: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/users/${userId}/reject`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      await axios.put(`${API_BASE_URL}/users/${userId}/reject`, {}, { headers });
       toast.success('User rejected');
       fetchUsers(); // Refresh the list
     } catch (error: any) {
+      console.error('Error rejecting user:', error);
       toast.error('Failed to reject user', { description: error.response?.data?.message || 'Network error' });
     }
   };

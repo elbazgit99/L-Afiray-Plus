@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 
 interface Partner {
   _id: string;
@@ -29,9 +29,21 @@ const PartnerManagementPage: React.FC = () => {
 
   const fetchPartners = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/users/partners`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const response = await axios.get(`${API_BASE_URL}/users/partners`, { headers });
       setPartners(response.data);
     } catch (error: any) {
+      console.error('Error fetching partners:', error);
       toast.error('Failed to fetch partners', { description: error.response?.data?.message || 'Network error' });
     } finally {
       setLoading(false);
@@ -42,24 +54,48 @@ const PartnerManagementPage: React.FC = () => {
 
   const approvePartner = async (partnerId: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/users/${partnerId}/approve`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      await axios.put(`${API_BASE_URL}/users/${partnerId}/approve`, {}, { headers });
       toast.success('Partner approved successfully', { 
         description: 'Approval email has been sent to the partner' 
       });
       fetchPartners(); // Refresh the list
     } catch (error: any) {
+      console.error('Error approving partner:', error);
       toast.error('Failed to approve partner', { description: error.response?.data?.message || 'Network error' });
     }
   };
 
   const rejectPartner = async (partnerId: string) => {
     try {
-      await axios.put(`${API_BASE_URL}/users/${partnerId}/reject`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      await axios.put(`${API_BASE_URL}/users/${partnerId}/reject`, {}, { headers });
       toast.success('Partner rejected', { 
         description: 'Rejection email has been sent to the partner' 
       });
       fetchPartners(); // Refresh the list
     } catch (error: any) {
+      console.error('Error rejecting partner:', error);
       toast.error('Failed to reject partner', { description: error.response?.data?.message || 'Network error' });
     }
   };
@@ -67,13 +103,23 @@ const PartnerManagementPage: React.FC = () => {
 
 
   const deletePartner = async (partnerId: string) => {
-    if (!confirm('Are you sure you want to delete this partner?')) return;
-    
     try {
-      await axios.delete(`${API_BASE_URL}/users/${partnerId}`);
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      await axios.delete(`${API_BASE_URL}/users/${partnerId}`, { headers });
       toast.success('Partner deleted successfully');
       fetchPartners(); // Refresh the list
     } catch (error: any) {
+      console.error('Error deleting partner:', error);
       toast.error('Failed to delete partner', { description: error.response?.data?.message || 'Network error' });
     }
   };

@@ -17,7 +17,7 @@ interface Producer {
 
 interface CarModelFormProps {
   producers: Producer[];
-  onAddModel: (modelName: string, producerId: string) => Promise<void>;
+  onAddModel: (modelName: string, producerId: string, engine?: string) => Promise<void>;
   loading: boolean;
   selectedProducerIdForModel: string;
   setSelectedProducerIdForModel: (id: string) => void;
@@ -31,11 +31,13 @@ const CarModelForm: React.FC<CarModelFormProps> = ({
   setSelectedProducerIdForModel,
 }) => {
   const [newCarModelName, setNewCarModelName] = useState<string>('');
+  const [engineType, setEngineType] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onAddModel(newCarModelName, selectedProducerIdForModel);
+    await onAddModel(newCarModelName, selectedProducerIdForModel, engineType);
     setNewCarModelName('');
+    setEngineType('');
   };
 
   return (
@@ -77,6 +79,20 @@ const CarModelForm: React.FC<CarModelFormProps> = ({
             onChange={(e) => setNewCarModelName(e.target.value)}
             className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
             required
+            disabled={loading}
+          />
+        </div>
+        <div>
+          <Label htmlFor="engine-type" className="block text-sm font-medium mb-1 text-black dark:text-white">
+            Engine Type (Optional):
+          </Label>
+          <Input
+            type="text"
+            id="engine-type"
+            placeholder="e.g., 2.0L TDI, 1.8L Turbo, Electric"
+            value={engineType}
+            onChange={(e) => setEngineType(e.target.value)}
+            className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
             disabled={loading}
           />
         </div>

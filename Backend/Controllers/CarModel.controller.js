@@ -4,6 +4,14 @@ import CarModel from '../Models/CarModel.js';
 export const getAllModels = async (req, res) => {
     try {
         const models = await CarModel.find().populate('producer');
+        console.log('Fetched car models:', models.length);
+        if (models.length > 0) {
+            console.log('Sample car model:', {
+                name: models[0].name,
+                engine: models[0].engine,
+                producer: models[0].producer?.name
+            });
+        }
         res.status(200).json(models);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -24,11 +32,14 @@ export const getModelById = async (req, res) => {
 // Create new model
 export const createModel = async (req, res) => {
     try {
+        console.log('Creating car model with data:', req.body);
         // FIX: Changed 'new Model' to 'new CarModel'
         const newModel = new CarModel(req.body);
         const savedModel = await newModel.save();
+        console.log('Saved car model:', savedModel);
         res.status(201).json(savedModel);
     } catch (error) {
+        console.error('Error creating car model:', error);
         res.status(400).json({ message: error.message });
     }
 };
@@ -36,14 +47,17 @@ export const createModel = async (req, res) => {
 // Update model by ID
 export const updateModel = async (req, res) => {
     try {
+        console.log('Updating car model with data:', req.body);
         const updatedModel = await CarModel.findByIdAndUpdate(
             req.params.id,
             req.body,
             { new: true }
         );
         if (!updatedModel) return res.status(404).json({ message: 'Model not found' });
+        console.log('Updated car model:', updatedModel);
         res.status(200).json(updatedModel);
     } catch (error) {
+        console.error('Error updating car model:', error);
         res.status(400).json({ message: error.message });
     }
 };

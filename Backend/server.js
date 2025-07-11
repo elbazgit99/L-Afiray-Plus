@@ -11,6 +11,7 @@ import CarPartsRouter from "./Routes/CarParts.route.js";
 import userRoutes from "./Routes/User.route.js";
 import rolesRoutes from "./Routes/Roles.route.js";
 import chatRoutes from "./Routes/Chat.route.js";
+import moderationRoutes from "./Routes/Moderation.route.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -43,6 +44,7 @@ app.use("/api/producers", producerRoutes);
 app.use("/api/models", CarModelRouter);
 app.use("/api/carparts", CarPartsRouter);
 app.use("/api/chat", chatRoutes);
+app.use("/api/moderation", moderationRoutes);
 
 // Connect to DB and start server
 try {

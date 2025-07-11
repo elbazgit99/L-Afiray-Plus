@@ -13,7 +13,7 @@ export const authMiddleware = (req, res, next) => {
 
             // Attach user information (id and role) from the decoded token to the request object
             // This information will be used by the authorize middleware or controllers.
-            req.user = { id: decoded.id, role: decoded.role };
+            req.user = { id: decoded.id, _id: decoded.id, role: decoded.role };
 
             next(); // Proceed to the next middleware/route handler
 

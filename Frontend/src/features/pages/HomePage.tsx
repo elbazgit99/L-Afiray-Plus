@@ -25,8 +25,7 @@ interface CarPart {
   category: string;
   compatibility?: string;
   producer: { _id: string; name: string; };
-  model: { _id: string; name: string; };
-  engine?: string; // Add engine field
+  model: { _id: string; name: string; engine?: string; };
   createdAt?: string;
   updatedAt?: string;
 }
@@ -34,8 +33,8 @@ interface CarPart {
 interface CarModel {
   _id: string;
   name: string;
+  engine?: string;
   producer: { _id: string; name: string; };
-  engine?: string; // Add engine field
 }
 
 interface Producer {
@@ -90,7 +89,7 @@ const HomePage: React.FC = () => {
 
   // Get unique values for filters
   const uniqueProducers = Array.from(new Set(featuredParts.map(part => part.producer?.name).filter(Boolean)));
-  const uniqueEngines = Array.from(new Set(featuredParts.map(part => part.engine).filter((engine): engine is string => Boolean(engine))));
+  const uniqueEngines = Array.from(new Set(featuredParts.map(part => part.model?.engine).filter((engine): engine is string => Boolean(engine && engine !== 'Not specified'))));
   
   // Get models based on selected producer (cascading filter)
   const getModelsForSelectedProducer = () => {
@@ -122,7 +121,7 @@ const HomePage: React.FC = () => {
     
     // Filter dropdowns
     const producerMatch = !selectedProducer || selectedProducer === 'all' || part.producer?.name === selectedProducer;
-    const engineMatch = !selectedEngine || selectedEngine === 'all' || part.engine === selectedEngine;
+    const engineMatch = !selectedEngine || selectedEngine === 'all' || (part.model?.engine && part.model.engine !== 'Not specified' && part.model.engine === selectedEngine);
     const modelMatch = !selectedModel || selectedModel === 'all' || part.model?.name === selectedModel;
     
     return searchMatch && producerMatch && engineMatch && modelMatch;
@@ -171,6 +170,16 @@ const HomePage: React.FC = () => {
     selectedProducer,
     selectedEngine,
     selectedModel
+  });
+
+  // Debug: Log engine data
+  console.log('Engine data debug:', {
+    uniqueEngines,
+    samplePartWithEngine: featuredParts.length > 0 ? {
+      partName: featuredParts[0].name,
+      modelName: featuredParts[0].model?.name,
+      modelEngine: featuredParts[0].model?.engine
+    } : null
   });
 
   // Move fetchPartnerContent outside useEffect so it can be called by the Refresh button

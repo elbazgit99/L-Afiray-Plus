@@ -27,7 +27,7 @@ const emailTemplates = {
           <h2 style="color: #333; margin-bottom: 20px;">Hello ${partnerName},</h2>
           
           <p style="color: #555; line-height: 1.6; margin-bottom: 20px;">
-            Great news! Your partner account for <strong>${companyName}</strong> has been approved by our moderation team. 
+            Great news! Your partner account for <strong>${companyName}</strong> has been approved.
             You can now access all partner features and start managing your car parts inventory.
           </p>
           

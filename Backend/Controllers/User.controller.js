@@ -198,35 +198,13 @@ export const createUser = async (req, res) => {
             newUserFields.companyName = companyName;
             newUserFields.companyAddress = companyAddress;
             
-            // Handle approval code for partners
-            if (approvalCode) {
-                // Check if the approval code matches any existing partner's code
-                const partnerWithCode = await User.findOne({ 
-                    role: ROLES.PARTNER, 
-                    approvalCode: approvalCode,
-                    isApproved: false 
-                });
-                
-                if (partnerWithCode) {
-                    // If code matches, approve the partner
-                    newUserFields.isApproved = true;
-                    newUserFields.approvalCode = null; // Clear the used code
-                    
-                    // Also clear the code from the original partner
-                    partnerWithCode.approvalCode = null;
-                    await partnerWithCode.save();
-                } else {
-                    // If no valid code provided, partner starts as unapproved
-                    newUserFields.isApproved = false;
-                }
-            } else {
-                // No approval code provided, partner starts as unapproved
-                newUserFields.isApproved = false;
-            }
+            // Partners start as unapproved
+            newUserFields.isApproved = false;
         } else if (role === ROLES.BUYER) {
             // No additional fields required for buyers
         } else if (role === ROLES.MODERATOR) {
-        // No additional fields specifically required for MODERATOR on creation
+            // Moderators are automatically approved
+            newUserFields.isApproved = true;
         } else {
             return res.status(400).json({ message: 'Invalid user role' });
         }
@@ -398,8 +376,13 @@ export const rejectPartner = async (req, res) => {
 // Create moderator user (for initial setup)
 export const createModerator = async (req, res) => {
     try {
+        const moderatorEmail = process.env.MODERATOR_EMAIL || 'admin@lafiray.ma';
+        const moderatorPassword = process.env.MODERATOR_PASSWORD || 'admin123';
+        const moderatorName = process.env.MODERATOR_NAME || 'L\'Afiray Moderator';
+        const moderatorPhone = process.env.MODERATOR_PHONE || '+2125 000 00000';
+
         // Check if moderator already exists
-        const existingModerator = await User.findOne({ email: 'lafiray@moderator.ma' });
+        const existingModerator = await User.findOne({ email: moderatorEmail });
         if (existingModerator) {
             return res.status(400).json({ 
                 message: 'Moderator user already exists',
@@ -415,15 +398,15 @@ export const createModerator = async (req, res) => {
 
         // Hash password
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('lafiray@moderator.ma', salt);
+        const hashedPassword = await bcrypt.hash(moderatorPassword, salt);
 
         // Create moderator user
         const moderatorUser = new User({
-            name: 'L\'Afiray Moderator',
-            email: 'lafiray@moderator.ma',
+            name: moderatorName,
+            email: moderatorEmail,
             password: hashedPassword,
             role: ROLES.MODERATOR,
-            phone: '+2125 000 00000', // Default phone number for moderator
+            phone: moderatorPhone,
             isApproved: true // Moderator is automatically approved
         });
 
@@ -452,6 +435,11 @@ export const createModerator = async (req, res) => {
 // Initialize moderator account (public endpoint for first-time setup)
 export const initializeModerator = async (req, res) => {
     try {
+        const moderatorEmail = process.env.MODERATOR_EMAIL || 'admin@lafiray.ma';
+        const moderatorPassword = process.env.MODERATOR_PASSWORD || 'admin123';
+        const moderatorName = process.env.MODERATOR_NAME || 'L\'Afiray Moderator';
+        const moderatorPhone = process.env.MODERATOR_PHONE || '+2125 000 00000';
+
         // Check if any moderator exists
         const existingModerator = await User.findOne({ role: ROLES.MODERATOR });
         
@@ -460,22 +448,22 @@ export const initializeModerator = async (req, res) => {
                 message: 'Moderator already exists',
                 exists: true,
                 credentials: {
-                    email: 'lafiray@moderator.ma',
-                    password: 'lafiray@moderator.ma'
+                    email: moderatorEmail,
+                    password: moderatorPassword
                 }
             });
         }
 
         // Create moderator if none exists
         const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash('lafiray@moderator.ma', salt);
+        const hashedPassword = await bcrypt.hash(moderatorPassword, salt);
 
         const moderatorUser = new User({
-            name: 'L\'Afiray Moderator',
-            email: 'lafiray@moderator.ma',
+            name: moderatorName,
+            email: moderatorEmail,
             password: hashedPassword,
             role: ROLES.MODERATOR,
-            phone: '+2125 000 00000', // Default phone number for moderator
+            phone: moderatorPhone,
             isApproved: true
         });
 
@@ -485,8 +473,8 @@ export const initializeModerator = async (req, res) => {
             message: 'Moderator account created successfully!',
             created: true,
             credentials: {
-                email: 'lafiray@moderator.ma',
-                password: 'lafiray@moderator.ma'
+                email: moderatorEmail,
+                password: moderatorPassword
             }
         });
 
