@@ -76,42 +76,42 @@ const weeklyData = [
 const chartConfig = {
   users: {
     label: "Users",
-    color: "#3b82f6",
+    color: "#000000",
     theme: {
-      light: "#3b82f6",
-      dark: "#60a5fa",
+      light: "#000000",
+      dark: "#ffffff",
     },
   },
   sales: {
     label: "Sales (DH)",
-    color: "#10b981",
+    color: "#000000",
     theme: {
-      light: "#10b981",
-      dark: "#34d399",
+      light: "#000000",
+      dark: "#ffffff",
     },
   },
   orders: {
     label: "Orders",
-    color: "#f59e0b",
+    color: "#000000",
     theme: {
-      light: "#f59e0b",
-      dark: "#fbbf24",
+      light: "#000000",
+      dark: "#ffffff",
     },
   },
   parts: {
     label: "Parts",
-    color: "#8b5cf6",
+    color: "#000000",
     theme: {
-      light: "#8b5cf6",
-      dark: "#a78bfa",
+      light: "#000000",
+      dark: "#ffffff",
     },
   },
   revenue: {
     label: "Revenue (DH)",
-    color: "#ef4444",
+    color: "#000000",
     theme: {
-      light: "#ef4444",
-      dark: "#f87171",
+      light: "#000000",
+      dark: "#ffffff",
     },
   },
 };
@@ -169,11 +169,11 @@ const PlatformAnalyticsPage: React.FC = () => {
             <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-                <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                <Users className="h-4 w-4 text-black dark:text-white" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">720</div>
-                <p className="text-xs text-green-600 dark:text-green-400">
+                <p className="text-xs text-black dark:text-white">
                   +12% from last month
                 </p>
               </CardContent>
@@ -182,11 +182,11 @@ const PlatformAnalyticsPage: React.FC = () => {
             <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
-                <DollarSign className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <DollarSign className="h-4 w-4 text-black dark:text-white" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">18,500 DH</div>
-                <p className="text-xs text-green-600 dark:text-green-400">
+                <p className="text-xs text-black dark:text-white">
                   +8% from last month
                 </p>
               </CardContent>
@@ -195,11 +195,11 @@ const PlatformAnalyticsPage: React.FC = () => {
             <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
-                <ShoppingCart className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                <ShoppingCart className="h-4 w-4 text-black dark:text-white" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">512</div>
-                <p className="text-xs text-green-600 dark:text-green-400">
+                <p className="text-xs text-black dark:text-white">
                   +15% from last month
                 </p>
               </CardContent>
@@ -208,11 +208,11 @@ const PlatformAnalyticsPage: React.FC = () => {
             <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-700">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Active Parts</CardTitle>
-                <Package className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                <Package className="h-4 w-4 text-black dark:text-white" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">823</div>
-                <p className="text-xs text-green-600 dark:text-green-400">
+                <p className="text-xs text-black dark:text-white">
                   +22% from last month
                 </p>
               </CardContent>
@@ -247,34 +247,34 @@ const PlatformAnalyticsPage: React.FC = () => {
                   <Line
                     type="monotone"
                     dataKey="users"
-                    stroke="hsl(var(--color-users))"
+                    stroke="#000000"
                     strokeWidth={3}
-                    dot={{ fill: "hsl(var(--color-users))", strokeWidth: 2, r: 5, stroke: "hsl(var(--background))" }}
-                    activeDot={{ r: 7, stroke: "hsl(var(--color-users))", strokeWidth: 2 }}
+                    dot={false}
+                    activeDot={{ r: 6, fill: "#000000", stroke: "#ffffff", strokeWidth: 2 }}
                   />
                   <Line
                     type="monotone"
                     dataKey="sales"
-                    stroke="hsl(var(--color-sales))"
+                    stroke="#666666"
                     strokeWidth={3}
-                    dot={{ fill: "hsl(var(--color-sales))", strokeWidth: 2, r: 5, stroke: "hsl(var(--background))" }}
-                    activeDot={{ r: 7, stroke: "hsl(var(--color-sales))", strokeWidth: 2 }}
+                    dot={false}
+                    activeDot={{ r: 6, fill: "#666666", stroke: "#ffffff", strokeWidth: 2 }}
                   />
                   <Line
                     type="monotone"
                     dataKey="orders"
-                    stroke="hsl(var(--color-orders))"
+                    stroke="#999999"
                     strokeWidth={3}
-                    dot={{ fill: "hsl(var(--color-orders))", strokeWidth: 2, r: 5, stroke: "hsl(var(--background))" }}
-                    activeDot={{ r: 7, stroke: "hsl(var(--color-orders))", strokeWidth: 2 }}
+                    dot={false}
+                    activeDot={{ r: 6, fill: "#999999", stroke: "#ffffff", strokeWidth: 2 }}
                   />
                   <Line
                     type="monotone"
                     dataKey="parts"
-                    stroke="hsl(var(--color-parts))"
+                    stroke="#cccccc"
                     strokeWidth={3}
-                    dot={{ fill: "hsl(var(--color-parts))", strokeWidth: 2, r: 5, stroke: "hsl(var(--background))" }}
-                    activeDot={{ r: 7, stroke: "hsl(var(--color-parts))", strokeWidth: 2 }}
+                    dot={false}
+                    activeDot={{ r: 6, fill: "#cccccc", stroke: "#ffffff", strokeWidth: 2 }}
                   />
                 </LineChart>
               </ChartContainer>
@@ -373,9 +373,9 @@ const PlatformAnalyticsPage: React.FC = () => {
                   <Area
                     type="monotone"
                     dataKey="users"
-                    fill="hsl(var(--color-users))"
+                    fill="#000000"
                     fillOpacity={0.4}
-                    stroke="hsl(var(--color-users))"
+                    stroke="#000000"
                     strokeWidth={3}
                   />
                 </AreaChart>
@@ -411,12 +411,12 @@ const PlatformAnalyticsPage: React.FC = () => {
                   <ChartLegend content={<ChartLegendContent />} />
                   <Bar
                     dataKey="orders"
-                    fill="hsl(var(--color-orders))"
+                    fill="#000000"
                     radius={[6, 6, 0, 0]}
                   />
                   <Bar
                     dataKey="revenue"
-                    fill="hsl(var(--color-revenue))"
+                    fill="#000000"
                     radius={[6, 6, 0, 0]}
                   />
                 </BarChart>

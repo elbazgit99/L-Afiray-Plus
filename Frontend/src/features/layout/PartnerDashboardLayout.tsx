@@ -1,89 +1,23 @@
 import React from 'react';
-import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Outlet } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { ModeToggle } from '@/components/mode-toggle'; // Import ModeToggle
-import { 
-  SidebarProvider, 
-  Sidebar, 
-  SidebarMenu, 
-  SidebarMenuItem,
-  SidebarHeader,
-  SidebarContent,
-  SidebarFooter,
-  SidebarMenuButton
-} from '@/components/ui/sidebar';
-import { 
-  Car, 
-  Package, 
-  BarChart3, 
-  User, 
-  LogOut
-} from 'lucide-react';
+import { ModeToggle } from '@/components/mode-toggle';
+import HoverSidebar from '@/components/HoverSidebar';
 
 const PartnerDashboardLayout: React.FC = () => {
-  const { logout, user } = useAuth();
-  const location = useLocation();
-  const navigate = useNavigate();
+  const { user } = useAuth();
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex bg-background">
-        <Sidebar>
-          <SidebarHeader className="border-b border-border p-4">
-            <h2 className="text-lg font-semibold">Partner Panel</h2>
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/partner-dashboard/listings">
-                    <Car className="h-4 w-4" />
-                    <span>Car Management</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/partner-dashboard/orders">
-                    <Package className="h-4 w-4" />
-                    <span>Track Orders</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/partner-dashboard/sales-reports">
-                    <BarChart3 className="h-4 w-4" />
-                    <span>Sales Reports</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <Link to="/partner-dashboard/profile">
-                    <User className="h-4 w-4" />
-                    <span>My Profile</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter className="border-t border-border p-4">
-            <Button
-              onClick={logout}
-              variant="outline"
-              className="w-full"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </SidebarFooter>
-        </Sidebar>
-        <main className="flex-1 p-8">
-          <header className="flex justify-between items-center mb-8 pb-4 border-b border-border">
+    <div className="min-h-screen bg-background">
+      {/* Hover Sidebar */}
+      <HoverSidebar userRole="PARTNER" />
+      
+      {/* Main Content - Centered with proper spacing */}
+      <main className="flex justify-center pt-16">
+        <div className="w-full max-w-6xl px-8 py-8">
+          <header className="mb-8 pb-4 border-b border-border">
             <div>
-              <h1 className="text-3xl font-bold">Welcome, {user?.name} (Partner)</h1>
+              <h1 className="text-3xl font-bold text-black dark:text-white">Welcome, {user?.name} (Partner)</h1>
               {user?.isApproved === false && (
                 <div className="mt-2 flex items-center text-yellow-600 dark:text-yellow-400">
                   <svg className="h-4 w-4 mr-2" viewBox="0 0 20 20" fill="currentColor">
@@ -93,13 +27,16 @@ const PartnerDashboardLayout: React.FC = () => {
                 </div>
               )}
             </div>
-            <ModeToggle />
           </header>
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
       
-    </SidebarProvider>
+      {/* Fixed Mode Toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <ModeToggle />
+      </div>
+    </div>
   );
 };
 

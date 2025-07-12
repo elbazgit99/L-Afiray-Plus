@@ -340,24 +340,11 @@ const ContentModerationPage: React.FC = () => {
   return (
     <div className="p-6 space-y-6 bg-white dark:bg-black text-black dark:text-white">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold">Content Moderation & Dispute Resolution</h2>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Manage reported content, resolve disputes, and maintain platform integrity
-          </p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button
-            onClick={loadModerationData}
-            className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-            size="sm"
-          >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Refresh
-          </Button>
-          <Shield className="h-8 w-8 text-blue-600 dark:text-blue-400" />
-        </div>
+      <div>
+        <h2 className="text-3xl font-bold">Content Moderation & Dispute Resolution</h2>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
+          Manage reported content, resolve disputes, and maintain platform integrity
+        </p>
       </div>
 
       {/* Navigation Tabs */}

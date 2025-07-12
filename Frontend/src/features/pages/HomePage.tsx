@@ -439,7 +439,6 @@ const HomePage: React.FC = () => {
               <span className="text-sm text-gray-600 dark:text-gray-400">Your Auto Parts Hub</span>
             </div>
             <div className="flex items-center space-x-4">
-              <ModeToggle />
               {isAuthenticated ? (
                 <div className="flex items-center space-x-2">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Welcome, {user?.name}</span>
@@ -1246,6 +1245,11 @@ const HomePage: React.FC = () => {
         isOpen={showChatBot} 
         onToggle={() => setShowChatBot(!showChatBot)} 
       />
+      
+      {/* Fixed Mode Toggle */}
+      <div className="fixed top-4 right-4 z-50">
+        <ModeToggle />
+      </div>
     </div>
   );
 };

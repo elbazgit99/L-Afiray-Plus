@@ -215,18 +215,18 @@ const UserManagementPage: React.FC = () => {
                         <h3 className="text-lg font-semibold text-black dark:text-white">{user.name}</h3>
                         <span className={`inline-block px-3 py-1 text-xs rounded-full ${
                           user.role === 'BUYER' 
-                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                            ? 'bg-gray-100 text-black dark:bg-gray-800 dark:text-white'
                             : user.role === 'PARTNER'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                            ? 'bg-gray-100 text-black dark:bg-gray-800 dark:text-white'
+                            : 'bg-gray-100 text-black dark:bg-gray-800 dark:text-white'
                         }`}>
                           {user.role}
                         </span>
-                        {user.isApproved !== undefined && (
+                        {user.role === 'PARTNER' && user.isApproved !== undefined && (
                           <span className={`inline-block px-3 py-1 text-xs rounded-full ${
                             user.isApproved 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
-                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                              ? 'bg-gray-100 text-black dark:bg-gray-800 dark:text-white' 
+                              : 'bg-gray-100 text-black dark:bg-gray-800 dark:text-white'
                           }`}>
                             {user.isApproved ? 'Approved' : 'Pending'}
                           </span>
