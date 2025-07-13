@@ -9,7 +9,7 @@ interface Producer {
 interface CarModel {
   _id: string;
   name: string;
-  producer: string;
+  producer: string | { _id: string; name: string };
 }
 
 interface CarPart {
@@ -46,7 +46,11 @@ const ProducerList: React.FC<ProducerListProps> = ({
 }) => {
 
   const filterModelsByProducer = (producerId: string): CarModel[] => {
-    return carModels.filter(model => model.producer === producerId);
+    return carModels.filter(model => {
+      if (!model.producer) return false;
+      const modelProducerId = typeof model.producer === 'string' ? model.producer : model.producer._id;
+      return modelProducerId === producerId;
+    });
   };
 
   const filterPartsByModel = (modelId: string): CarPart[] => {

@@ -195,6 +195,21 @@ const HomePage: React.FC = () => {
       console.log('Total car parts found:', partsResponse.data.length);
       console.log('Response status:', partsResponse.status);
       
+      // Debug: Check the structure of the first car part
+      if (partsResponse.data.length > 0) {
+        const firstPart = partsResponse.data[0];
+        console.log('First car part structure:', {
+          _id: firstPart._id,
+          name: firstPart.name,
+          producer: firstPart.producer,
+          model: firstPart.model,
+          producerType: typeof firstPart.producer,
+          modelType: typeof firstPart.model,
+          producerName: firstPart.producer?.name,
+          modelName: firstPart.model?.name
+        });
+      }
+      
       // Debug: Log each part to see the structure
       if (partsResponse.data.length > 0) {
         console.log('Sample car part structure:', partsResponse.data[0]);

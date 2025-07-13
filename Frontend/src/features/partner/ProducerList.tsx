@@ -47,6 +47,7 @@ const ProducerList: React.FC<ProducerListProps> = ({
 
   const filterModelsByProducer = (producerId: string): CarModel[] => {
     return carModels.filter(model => {
+      if (!model.producer) return false;
       const modelProducerId = typeof model.producer === 'string' ? model.producer : model.producer._id;
       return modelProducerId === producerId;
     });

@@ -132,6 +132,7 @@ const PartnerListingsPage: React.FC = () => {
 
   useEffect(() => {
     const modelsForCurrentProducer = carModels.filter(model => {
+      if (!model.producer) return false;
       const producerId = typeof model.producer === 'string' ? model.producer : model.producer._id;
       return producerId === selectedProducerIdForPart;
     });

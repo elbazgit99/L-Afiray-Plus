@@ -340,11 +340,11 @@ const ContentModerationPage: React.FC = () => {
   return (
     <div className="p-6 space-y-6 bg-white dark:bg-black text-black dark:text-white">
       {/* Header */}
-      <div>
-        <h2 className="text-3xl font-bold">Content Moderation & Dispute Resolution</h2>
-        <p className="text-gray-600 dark:text-gray-400 mt-2">
-          Manage reported content, resolve disputes, and maintain platform integrity
-        </p>
+        <div>
+          <h2 className="text-3xl font-bold">Content Moderation & Dispute Resolution</h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">
+            Manage reported content, resolve disputes, and maintain platform integrity
+          </p>
       </div>
 
       {/* Navigation Tabs */}

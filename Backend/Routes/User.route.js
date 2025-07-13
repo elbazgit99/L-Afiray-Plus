@@ -11,10 +11,12 @@ import {
     approvePartner,
     rejectPartner,
     createModerator,
-    initializeModerator
+    initializeModerator,
+    uploadProfileImage
 } from '../Controllers/User.controller.js';
 import { authMiddleware, authorize } from '../Middleware/AuthMiddleware.js'; // Import both middlewares
 import ROLES from '../Constants/UserRoles.js'; // Import ROLES constant
+import upload from '../Middleware/uploadMiddleware.js'; // Import upload middleware
 
 const UserRouter = express.Router();
 
@@ -43,6 +45,7 @@ UserRouter.get('/partners', authMiddleware, authorize([ROLES.MODERATOR]), getPar
 UserRouter.get('/:id', authMiddleware, authorize([ROLES.MODERATOR, ROLES.PARTNER, ROLES.BUYER]), getUserById); // User can view their own, Moderator can view all
 UserRouter.post('/', authMiddleware, authorize([ROLES.MODERATOR]), createUser); // Moderator adds partners/users manually
 UserRouter.put('/:id', authMiddleware, authorize([ROLES.MODERATOR, ROLES.PARTNER, ROLES.BUYER]), updateUser); // Moderator can update any, User can update their own
+UserRouter.put('/profile-image', authMiddleware, authorize([ROLES.PARTNER, ROLES.BUYER, ROLES.MODERATOR]), upload.single('profileImage'), uploadProfileImage); // Upload profile image
 UserRouter.put('/:id/approve', authMiddleware, authorize([ROLES.MODERATOR]), approvePartner); // Approve partner
 UserRouter.put('/:id/reject', authMiddleware, authorize([ROLES.MODERATOR]), rejectPartner); // Reject partner
 UserRouter.delete('/:id', authMiddleware, authorize([ROLES.MODERATOR]), deleteUser); // Only Moderator can delete users

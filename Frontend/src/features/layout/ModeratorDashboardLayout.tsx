@@ -20,7 +20,7 @@ const ModeratorDashboardLayout: React.FC = () => {
           </header>
           <Outlet />
         </div>
-      </main>
+        </main>
       
       {/* Fixed Mode Toggle */}
       <div className="fixed top-4 right-4 z-50">

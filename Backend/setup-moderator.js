@@ -11,14 +11,14 @@ const setupModerator = async () => {
   try {
     // Connect to database
     await connectDB();
-    console.log('✅ Database connected successfully');
+    console.log(' Database connected successfully');
 
     const moderatorEmail = process.env.MODERATOR_EMAIL || 'admin@lafiray.ma';
     const moderatorPassword = process.env.MODERATOR_PASSWORD || 'admin123';
     const moderatorName = process.env.MODERATOR_NAME || 'L\'Afiray Moderator';
     const moderatorPhone = process.env.MODERATOR_PHONE || '+2125 000 00000';
 
-    console.log('🔧 Setting up moderator account with:');
+    console.log(' Setting up moderator account with:');
     console.log(`   Email: ${moderatorEmail}`);
     console.log(`   Name: ${moderatorName}`);
     console.log(`   Phone: ${moderatorPhone}`);
@@ -48,15 +48,15 @@ const setupModerator = async () => {
 
     await moderatorUser.save();
 
-    console.log('✅ Moderator account created successfully!');
-    console.log('📋 Login credentials:');
+    console.log('Moderator account created successfully!');
+    console.log(' Login credentials:');
     console.log(`   Email: ${moderatorEmail}`);
     console.log(`   Password: ${moderatorPassword}`);
-    console.log('\n🔐 Please change the password after first login for security.');
-    console.log('💡 You can update these credentials in your .env file.');
+    console.log('\n Please change the password after first login for security.');
+    console.log(' You can update these credentials in your .env file.');
 
   } catch (error) {
-    console.error('❌ Error setting up moderator:', error.message);
+    console.error('Error setting up moderator:', error.message);
     process.exit(1);
   }
 };

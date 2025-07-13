@@ -28,6 +28,7 @@ interface Partner {
   phone: string;
   isApproved: boolean;
   createdAt: string;
+  profileImage?: string;
 }
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -203,8 +204,16 @@ const PartnerManagementPage: React.FC = () => {
               <CardContent className="p-1 sm:p-2 md:p-3">
                 {/* Profile Image */}
                 <div className="mb-1 -mt-3">
-                  <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto flex items-center justify-center mb-2 sm:mb-3">
-                    <Building2 className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 text-gray-500 dark:text-gray-400" />
+                  <div className="w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto flex items-center justify-center mb-2 sm:mb-3 overflow-hidden">
+                    {partner.profileImage ? (
+                      <img 
+                        src={partner.profileImage} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : (
+                      <Building2 className="h-7 w-7 sm:h-8 sm:w-8 md:h-9 md:w-9 text-gray-500 dark:text-gray-400" />
+                    )}
                   </div>
                   
                   {/* Status Badge */}

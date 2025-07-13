@@ -15,8 +15,18 @@ export const createProducer = async (req, res) => {
 export const getAllProducers = async (req, res) => {
      try {
           const producers = await Producer.find();
+          console.log('Fetched producers:', producers.length);
+          if (producers.length > 0) {
+               console.log('Sample producer:', {
+                    name: producers[0].name,
+                    id: producers[0]._id
+               });
+          } else {
+               console.log('No producers found in database');
+          }
           res.json(producers);
      } catch (err) {
+          console.error('Error fetching producers:', err);
           res.status(500).json({ error: err.message });
      }
 };

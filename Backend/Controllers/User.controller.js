@@ -2,7 +2,9 @@ import User from '../Models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import ROLES from '../Constants/UserRoles.js';
-import { sendEmail } from '../Config/emailService.js'; 
+import { sendEmail } from '../Config/emailService.js';
+import path from 'path';
+import fs from 'fs'; 
 
 // to help function generate a JWT token
 const generateToken = (id, role) => {
@@ -482,6 +484,47 @@ export const initializeModerator = async (req, res) => {
         console.error('Error initializing moderator:', err);
         res.status(500).json({ 
             message: 'Failed to initialize moderator account', 
+            error: err.message 
+        });
+    }
+};
+
+// Upload profile image
+export const uploadProfileImage = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No image file provided' });
+        }
+
+        const userId = req.user.id;
+        const user = await User.findById(userId);
+        
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Delete old profile image if it exists
+        if (user.profileImage) {
+            const oldImagePath = path.join(process.cwd(), 'uploads', path.basename(user.profileImage));
+            if (fs.existsSync(oldImagePath)) {
+                fs.unlinkSync(oldImagePath);
+            }
+        }
+
+        // Update user with new profile image path
+        const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        user.profileImage = imageUrl;
+        await user.save();
+
+        res.json({ 
+            message: 'Profile image uploaded successfully',
+            profileImage: imageUrl
+        });
+
+    } catch (err) {
+        console.error('Error uploading profile image:', err);
+        res.status(500).json({ 
+            message: 'Failed to upload profile image', 
             error: err.message 
         });
     }

@@ -40,6 +40,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required : [true , "phone number is required"]
     },
+    profileImage: {
+        type: String,
+        default: null
+    },
     // Partner approval fields
     isApproved: {
         type: Boolean,

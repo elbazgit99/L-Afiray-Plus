@@ -17,7 +17,7 @@ interface Producer {
 
 interface CarModelFormProps {
   producers: Producer[];
-  onAddModel: (modelName: string, producerId: string, engine?: string) => Promise<void>;
+  onAddModel: (modelName: string, producerId: string, engine: string) => Promise<void>;
   loading: boolean;
   selectedProducerIdForModel: string;
   setSelectedProducerIdForModel: (id: string) => void;
@@ -84,22 +84,27 @@ const CarModelForm: React.FC<CarModelFormProps> = ({
         </div>
         <div>
           <Label htmlFor="engine-type" className="block text-sm font-medium mb-1 text-black dark:text-white">
-            Engine Type (Optional):
+            Engine Type:
           </Label>
-          <Input
-            type="text"
-            id="engine-type"
-            placeholder="e.g., 2.0L TDI, 1.8L Turbo, Electric"
+          <Select
             value={engineType}
-            onChange={(e) => setEngineType(e.target.value)}
-            className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
+            onValueChange={setEngineType}
             disabled={loading}
-          />
+          >
+            <SelectTrigger id="engine-type" className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600">
+              <SelectValue placeholder="Select engine type" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
+              <SelectItem value="Petrol">Petrol/Gasoline</SelectItem>
+              <SelectItem value="Diesel">Diesel</SelectItem>
+              <SelectItem value="Electric">Electric</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <Button
           type="submit"
           className="w-full bg-black text-white dark:bg-white dark:text-black py-3 px-6 rounded-xl font-semibold hover:opacity-90 transition duration-300 shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading || producers.length === 0}
+          disabled={loading || producers.length === 0 || engineType.trim() === ''}
         >
           Add Car Model
         </Button>

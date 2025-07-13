@@ -25,6 +25,7 @@ import PartnerOrdersPage from '@/features/partner/PartnerOrdersPage';
 import PartnerSalesReportsPage from '@/features/partner/PartnerSalesReportsPage';
 import PartnerProfilePage from '@/features/partner/PartnerProfilePage';
 import PartnerListingsPage from '@/features/partner/PartnerListingsPage'; // Import the new listings page
+import PartnerSalesHistoryPage from '@/features/partner/PartnerSalesHistoryPage';
 
 // Buyer Dashboard Components
 import BuyerDashboardLayout from '@/features/layout/BuyerDashboardLayout';
@@ -81,6 +82,12 @@ const App: React.FC = () => {
               <Route path="sales-reports" element={<PartnerSalesReportsPage />} />
               <Route path="profile" element={<PartnerProfilePage />} />
             </Route>
+            
+            {/* Partner Sales History Route */}
+            <Route path="/partner-sales-history" element={<PrivateRoute roles="PARTNER"><PartnerSalesHistoryPage /></PrivateRoute>} />
+            
+            {/* Test route for debugging */}
+            <Route path="/test-sales" element={<PartnerSalesHistoryPage />} />
 
             {/* Buyer Protected Routes */}
             <Route path="/buyer-dashboard" element={<PrivateRoute roles="BUYER"><BuyerDashboardLayout /></PrivateRoute>}>

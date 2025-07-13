@@ -58,12 +58,12 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
   const [newPartDescription, setNewPartDescription] = useState<string>('');
   const [newPartPrice, setNewPartPrice] = useState<string>('');
   const [newPartBrand, setNewPartBrand] = useState<string>('');
-  const [newPartEngineType, setNewPartEngineType] = useState<string>('');
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const modelsForSelectedProducerForParts = carModels.filter(model => {
+    if (!model.producer) return false;
     const producerId = typeof model.producer === 'string' ? model.producer : model.producer._id;
     return producerId === selectedProducerIdForPart;
   });
@@ -107,7 +107,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
       imageFile: selectedImageFile,
       price: parseFloat(newPartPrice),
       brand: newPartBrand.trim(),
-      category: newPartEngineType.trim(),
+      category: '', // Empty category since engine type is removed
       producer: selectedProducerIdForPart,
       model: selectedModelIdForPart,
     };
@@ -116,7 +116,6 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
     setNewPartDescription('');
     setNewPartPrice('');
     setNewPartBrand('');
-    setNewPartEngineType('');
     setSelectedImageFile(null);
     setImagePreview(null);
   };
@@ -237,26 +236,6 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
             disabled={loading}
           />
         </div>
-        {/* Part Engine Type input */}
-        <div>
-          <Label htmlFor="part-engine-type" className="block text-sm font-medium mb-1 text-black dark:text-white">
-            Engine Type:
-          </Label>
-          <Select
-            value={newPartEngineType}
-            onValueChange={setNewPartEngineType}
-            disabled={loading}
-          >
-            <SelectTrigger id="part-engine-type" className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600">
-              <SelectValue placeholder="Select engine type" />
-            </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
-              <SelectItem value="Petrol">Petrol/Gasoline</SelectItem>
-              <SelectItem value="Diesel">Diesel</SelectItem>
-              <SelectItem value="Electric">Electric</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
         {/* Part Image Upload */}
         <div>
           <Label htmlFor="part-image-upload" className="block text-sm font-medium mb-1 text-black dark:text-white">
@@ -314,7 +293,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
         <Button
           type="submit"
           className="w-full bg-black text-white dark:bg-white dark:text-black py-3 px-6 rounded-xl font-semibold hover:opacity-90 transition duration-300 shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading || producers.length === 0 || modelsForSelectedProducerForParts.length === 0 || newPartEngineType.trim() === '' || !selectedImageFile}
+          disabled={loading || producers.length === 0 || modelsForSelectedProducerForParts.length === 0 || !selectedImageFile}
         >
           Add Car Part
         </Button>
