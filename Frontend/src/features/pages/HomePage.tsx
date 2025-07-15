@@ -943,7 +943,8 @@ const HomePage: React.FC = () => {
       <footer className="bg-black dark:bg-black text-white dark:text-white py-8 px-6 sm:px-12 lg:px-24 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center">
-            {/* Removed the text 'L'Afiray.ma' and subtitle */}
+            <h4 className="text-xl font-bold mb-4 text-white dark:text-white">L'Afiray.ma</h4>
+            <p className="text-white dark:text-white mb-6">Your trusted partner for quality auto parts in Morocco</p>
             
             {/* Social Media Icons */}
             <div className="flex justify-center space-x-6 mb-6">
@@ -1297,10 +1298,6 @@ const HomePage: React.FC = () => {
       <div className="fixed top-20 right-4 z-50">
         <ModeToggle />
       </div>
-      {/* Footer with logo only */}
-      <footer className="w-full border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black py-8 mt-16">
-        {/* Footer content removed as the section is now empty */}
-      </footer>
 
       {/* Privacy Policy Modal */}
       {showPrivacyPolicy && (
