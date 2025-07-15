@@ -420,40 +420,50 @@ const PartnerListingsPage: React.FC = () => {
       {/* Available Car Parts Section */}
       <section className="mt-8">
         <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">Available Car Parts</h2>
-        {carParts.length === 0 ? (
-          <div className="text-gray-500 dark:text-gray-400 italic">No car parts available yet.<br/>Partners will add parts here once they create them.</div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {carParts.map(part => (
-              <div key={part._id} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col items-center shadow-md">
-                <img src={part.imageUrl} alt={part.name} className="w-32 h-32 object-cover rounded mb-3 border border-gray-300 dark:border-gray-600" />
-                <div className="w-full flex flex-col items-center">
-                  <h3 className="text-lg font-bold text-black dark:text-white mb-1">{part.name}</h3>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Brand: {part.brand}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Model: {(() => {
-                    const model = carModels.find(m => m._id === part.model);
-                    return model ? model.name : 'Unknown';
-                  })()}</div>
-                  <div className="text-base font-semibold text-black dark:text-white mb-1">{part.price} DH</div>
-                  <div className="flex gap-2 mt-2">
-                    <button
-                      onClick={() => deletePart(part._id, part.name)}
-                      className="px-4 py-2 rounded bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors text-sm font-semibold"
-                    >
-                      Delete
-                    </button>
-                    <button
-                      onClick={() => setEditingPart(part)}
-                      className="px-4 py-2 rounded bg-white text-black dark:bg-black dark:text-white border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors text-sm font-semibold"
-                    >
-                      Edit
-                    </button>
+        {(() => {
+          // Find all producer IDs that belong to the current partner (by name match)
+          const myProducerIds = producers
+            .filter(p => p.name.trim().toLowerCase() === (user?.name || '').trim().toLowerCase())
+            .map(p => p._id);
+          // Filter car parts by those producer IDs
+          const myCarParts = carParts.filter(part => myProducerIds.includes(
+            typeof part.producer === 'string' ? part.producer : (part.producer?._id || '')
+          ));
+          return myCarParts.length === 0 ? (
+            <div className="text-gray-500 dark:text-gray-400 italic">No car parts available yet.<br/>Partners will add parts here once they create them.</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {myCarParts.map(part => (
+                <div key={part._id} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col items-center shadow-md">
+                  <img src={part.imageUrl} alt={part.name} className="w-32 h-32 object-cover rounded mb-3 border border-gray-300 dark:border-gray-600" />
+                  <div className="w-full flex flex-col items-center">
+                    <h3 className="text-lg font-bold text-black dark:text-white mb-1">{part.name}</h3>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Brand: {part.brand}</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Model: {(() => {
+                      const model = carModels.find(m => m._id === part.model);
+                      return model ? model.name : 'Unknown';
+                    })()}</div>
+                    <div className="text-base font-semibold text-black dark:text-white mb-1">{part.price} DH</div>
+                    <div className="flex gap-2 mt-2">
+                      <button
+                        onClick={() => deletePart(part._id, part.name)}
+                        className="px-4 py-2 rounded bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors text-sm font-semibold"
+                      >
+                        Delete
+                      </button>
+                      <button
+                        onClick={() => setEditingPart(part)}
+                        className="px-4 py-2 rounded bg-white text-black dark:bg-black dark:text-white border border-black dark:border-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors text-sm font-semibold"
+                      >
+                        Edit
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          );
+        })()}
       </section>
 
       {/* Edit Car Part Modal (skeleton) */}

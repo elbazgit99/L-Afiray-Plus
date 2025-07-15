@@ -101,6 +101,27 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    // Validation
+    if (!selectedProducerIdForPart) {
+      toast.error('Please select a car producer.');
+      return;
+    }
+    if (!selectedModelIdForPart) {
+      toast.error('Please select a car model.');
+      return;
+    }
+    if (!selectedImageFile) {
+      toast.error('Please upload an image for the car part.');
+      return;
+    }
+    if (!newPartName.trim() || newPartName.trim().length < 2) {
+      toast.error('Part name must be at least 2 characters long.');
+      return;
+    }
+    if (!newPartPrice || isNaN(Number(newPartPrice)) || Number(newPartPrice) < 0) {
+      toast.error('Please enter a valid non-negative price.');
+      return;
+    }
     const partData = {
       name: newPartName.trim(),
       description: newPartDescription.trim(),
@@ -293,7 +314,19 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
         <Button
           type="submit"
           className="w-full bg-black text-white dark:bg-white dark:text-black py-3 px-6 rounded-xl font-semibold hover:opacity-90 transition duration-300 shadow-md transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-          disabled={loading || producers.length === 0 || modelsForSelectedProducerForParts.length === 0 || !selectedImageFile}
+          disabled={
+            loading ||
+            producers.length === 0 ||
+            modelsForSelectedProducerForParts.length === 0 ||
+            !selectedImageFile ||
+            !selectedProducerIdForPart ||
+            !selectedModelIdForPart ||
+            !newPartName.trim() ||
+            newPartName.trim().length < 2 ||
+            !newPartPrice ||
+            isNaN(Number(newPartPrice)) ||
+            Number(newPartPrice) < 0
+          }
         >
           Add Car Part
         </Button>

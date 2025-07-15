@@ -12,6 +12,8 @@ import { Search, Package, Car, Building2, Filter, X, CreditCard, Lock } from 'lu
 import { toast } from 'sonner';
 import { getImageUrl, handleImageError } from '@/lib/imageUtils';
 import ChatBot from '../../components/ChatBot';
+import logoLight from '../../assets/logo-light.png';
+import logoDark from '../../assets/logo-dark.png';
 
 // Define interfaces for the data structures
 interface CarPart {
@@ -47,7 +49,6 @@ const API_BASE_URL = 'http://localhost:5000/api';
 const HomePage: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
-
   // State for partner content
   const [featuredParts, setFeaturedParts] = useState<CarPart[]>([]);
   const [categoriesData, setCategoriesData] = useState<CarPart[]>([]);
@@ -86,6 +87,11 @@ const HomePage: React.FC = () => {
 
   // ChatBot states
   const [showChatBot, setShowChatBot] = useState(false);
+
+  // Privacy Policy modal states
+  const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
+  const [showTermsModal, setShowTermsModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
 
   // Get unique values for filters
   const uniqueProducers = Array.from(new Set(featuredParts.map(part => part.producer?.name).filter(Boolean)));
@@ -455,8 +461,19 @@ const HomePage: React.FC = () => {
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-black dark:text-white">L'Afiray.ma</h1>
-              <span className="text-sm text-gray-600 dark:text-gray-400">Your Auto Parts Hub</span>
+              <span className="block">
+                <img
+                  src={logoLight}
+                  alt="Lafiray.ma Logo Light"
+                  className="w-44 h-16 block dark:hidden"
+                />
+                <img
+                  src={logoDark}
+                  alt="Lafiray.ma Logo Dark"
+                  className="w-44 h-16 hidden dark:block"
+                />
+              </span>
+              {/* Removed the text 'L'Afiray.ma' and subtitle */}
             </div>
             <div className="flex items-center space-x-6">
               {isAuthenticated ? (
@@ -742,39 +759,7 @@ const HomePage: React.FC = () => {
               </Button>
             )}
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-            {(isSearchActive ? filteredResults.parts : filteredParts).map((part, index) => (
-              <div key={part._id} className="bg-white dark:bg-black rounded-lg shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-md hover:scale-[1.02] transition-all duration-300 group cursor-pointer flex flex-col h-80">
-                <img
-                  src={getImageUrl(part.imageUrl, part.imageFilename, `https://placehold.co/400x400/E0E0E0/333333?text=${encodeURIComponent(part.name)}`)}
-                  alt={part.name}
-                  className="w-full h-24 object-cover"
-                  onError={handleImageError}
-                  onLoad={() => console.log('Image loaded successfully for part:', part.name)}
-                />
-                <div className="flex-1">
-                  <h4 className="text-lg font-semibold mb-2 text-black dark:text-white group-hover:text-black dark:group-hover:text-white transition-colors text-left line-clamp-2">{part.name}</h4>
-                  <div className="space-y-1 text-xs text-black dark:text-white">
-                    <p><span className="font-medium">Brand:</span> {part.brand}</p>
-                    <p><span className="font-medium">Producer:</span> {part.producer?.name}</p>
-                    <p><span className="font-medium">Model:</span> {part.model?.name}</p>
-                    {part.compatibility && (
-                      <p><span className="font-medium">Compatibility:</span> {part.compatibility}</p>
-                    )}
-                  </div>
-                </div>
-                <span className="text-lg font-bold text-black dark:text-white">{part.price} DH</span>
-                <Button
-                  onClick={() => handleBuyClick(part)}
-                  className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-sm py-2 px-6 rounded-lg font-semibold shadow-sm border-0"
-                >
-                  Buy
-                </Button>
-              </div>
-            ))}
-          </div>
-          {(isSearchActive ? filteredResults.parts : filteredParts).length === 0 && (
+          {(isSearchActive ? filteredResults.parts : filteredParts).length === 0 ? (
             <div className="text-center py-12">
               {isSearchActive ? (
                 <>
@@ -805,8 +790,47 @@ const HomePage: React.FC = () => {
                 </>
               )}
             </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              {(isSearchActive ? filteredResults.parts : filteredParts).map((part) => (
+                <div key={part._id} className="bg-zinc-50 dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 p-2 flex flex-col h-80 w-full">
+                  <img
+                    src={getImageUrl(part.imageUrl, part.imageFilename, 'https://placehold.co/300x200/E0E0E0/333333?text=No+Image')}
+                    alt={part.name}
+                    className="w-full h-32 object-cover rounded-md mb-2"
+                    onError={handleImageError}
+                  />
+                  <h3 className="text-lg font-semibold text-black dark:text-white mb-1 line-clamp-2">{part.name}</h3>
+                  <p className="text-gray-700 dark:text-gray-300 text-xs mb-2 flex-grow line-clamp-2">{part.description || 'No description provided.'}</p>
+                  <div className="space-y-1 mb-3">
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <span className="font-medium">Brand:</span> {part.brand || 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <span className="font-medium">Category:</span> {part.category || 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <span className="font-medium">Producer:</span> {part.producer?.name || 'N/A'}
+                    </div>
+                    <div className="text-xs text-gray-600 dark:text-gray-400">
+                      <span className="font-medium">Model:</span> {part.model?.name || 'N/A'}
+                    </div>
+                  </div>
+                  <div className="mt-auto">
+                    <div className="text-lg font-bold text-green-600 dark:text-green-400 mb-2">
+                      {part.price?.toFixed(2)} DH
+                    </div>
+            <Button
+                      onClick={() => handleBuyClick(part)}
+                      className="w-full bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity py-2 text-sm"
+            >
+                      Buy Now
+            </Button>
+          </div>
+                </div>
+              ))}
+            </div>
           )}
-          {/* Removed the 'View All Parts' button */}
         </div>
       </section>
 
@@ -919,8 +943,7 @@ const HomePage: React.FC = () => {
       <footer className="bg-black dark:bg-black text-white dark:text-white py-8 px-6 sm:px-12 lg:px-24 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center">
-            <h4 className="text-xl font-bold mb-4 text-white dark:text-white">L'Afiray.ma</h4>
-            <p className="text-white dark:text-white mb-6">Your trusted partner for quality auto parts in Morocco</p>
+            {/* Removed the text 'L'Afiray.ma' and subtitle */}
             
             {/* Social Media Icons */}
             <div className="flex justify-center space-x-6 mb-6">
@@ -969,8 +992,14 @@ const HomePage: React.FC = () => {
               </a>
             </div>
             
-            <div className="flex justify-center space-x-6 text-sm text-white dark:text-white">
-              <span>© 2025 L'Afiray.ma</span>
+            <div className="flex flex-wrap justify-center items-center gap-4 text-sm text-white dark:text-white">
+              <button
+                onClick={() => setShowPrivacyPolicy(true)}
+                className="hover:underline cursor-pointer bg-transparent border-0 p-0 m-0 text-inherit"
+                style={{ background: 'none' }}
+              >
+                © 2025 L'Afiray.ma
+              </button>
               <span>•</span>
               <button 
                 onClick={() => setShowInstructions(true)}
@@ -979,10 +1008,25 @@ const HomePage: React.FC = () => {
                 How to Use
               </button>
               <span>•</span>
-              <span>Privacy Policy</span>
+              <button
+                onClick={() => setShowAboutModal(true)}
+                className="hover:underline cursor-pointer bg-transparent border-0 p-0 m-0 text-inherit"
+                style={{ background: 'none' }}
+              >
+                About Us
+              </button>
               <span>•</span>
-              <span>Terms of Service</span>
+              <button
+                onClick={() => setShowTermsModal(true)}
+                className="hover:underline cursor-pointer bg-transparent border-0 p-0 m-0 text-inherit"
+                style={{ background: 'none' }}
+              >
+                Terms of Service
+              </button>
             </div>
+            <span className="block w-full text-center text-xs text-gray-300 dark:text-gray-500 mt-2">
+              L'Afiray.ma is Morocco's trusted online marketplace for car parts. We connect buyers and partners for quality, affordable auto parts with a seamless experience.
+            </span>
           </div>
         </div>
       </footer>
@@ -1253,6 +1297,128 @@ const HomePage: React.FC = () => {
       <div className="fixed top-20 right-4 z-50">
         <ModeToggle />
       </div>
+      {/* Footer with logo only */}
+      <footer className="w-full border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black py-8 mt-16">
+        {/* Footer content removed as the section is now empty */}
+      </footer>
+
+      {/* Privacy Policy Modal */}
+      {showPrivacyPolicy && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-white/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold text-black dark:text-white">Privacy Policy</h2>
+              <button 
+                onClick={() => setShowPrivacyPolicy(false)}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="text-black dark:text-white text-sm space-y-4">
+              <p>
+                <strong>Effective Date: January 1, 2025</strong>
+              </p>
+              <p>
+                L'Afiray.ma values your privacy. We collect only the information necessary to provide our services, such as your name, contact details, and order information. We do not sell your data to third parties. Your information is used solely to improve your experience and fulfill your orders.
+              </p>
+              <p>
+                By using our platform, you agree to our collection and use of information as described in this policy. For questions, contact us at privacy@lafiray.ma.
+              </p>
+            </div>
+            <div className="mt-6 text-center">
+              <button 
+                onClick={() => setShowPrivacyPolicy(false)}
+                className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Terms of Service Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-white/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold text-black dark:text-white">Terms of Service</h2>
+              <button 
+                onClick={() => setShowTermsModal(false)}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="text-black dark:text-white text-sm space-y-4">
+              <p>
+                <strong>Welcome to L'Afiray.ma!</strong>
+              </p>
+              <p>
+                By using our platform, you agree to comply with and be bound by the following terms and conditions. Please read them carefully.
+              </p>
+              <ul className="list-disc pl-6 space-y-2">
+                <li>Use the platform for lawful purposes only.</li>
+                <li>Do not misuse, hack, or disrupt the service.</li>
+                <li>All content and trademarks are property of L'Afiray.ma or its partners.</li>
+                <li>We reserve the right to suspend or terminate accounts for violations.</li>
+                <li>We may update these terms at any time. Continued use means acceptance of changes.</li>
+              </ul>
+              <p>
+                For questions, contact us at support@lafiray.ma.
+              </p>
+            </div>
+            <div className="mt-6 text-center">
+              <button 
+                onClick={() => setShowTermsModal(false)}
+                className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* About Us Modal */}
+      {showAboutModal && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-white/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold text-black dark:text-white">About Us</h2>
+              <button 
+                onClick={() => setShowAboutModal(false)}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="text-black dark:text-white text-sm space-y-4">
+              <p>
+                <strong>Welcome to L'Afiray.ma!</strong>
+              </p>
+              <p>
+                L'Afiray.ma is Morocco's trusted online marketplace for car parts. Our mission is to connect buyers and partners, making it easy to find quality, affordable auto parts with a seamless experience.
+              </p>
+              <p>
+                We work with a network of reliable partners to ensure a wide selection of parts for all makes and models. Whether you're a car owner, mechanic, or business, L'Afiray.ma is your one-stop shop for auto parts in Morocco.
+              </p>
+              <p>
+                Thank you for choosing us. For inquiries, partnerships, or support, contact us at info@lafiray.ma.
+              </p>
+            </div>
+            <div className="mt-6 text-center">
+              <button 
+                onClick={() => setShowAboutModal(false)}
+                className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
