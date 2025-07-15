@@ -40,6 +40,32 @@ const RegisterPage: React.FC = () => {
     }
   }, [isAuthenticated, user, navigate]);
 
+  // Handle phone number input - only allow numbers
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow numbers, plus sign, and spaces
+    const numericValue = value.replace(/[^0-9+\s]/g, '');
+    setPhone(numericValue);
+  };
+
+  // Handle key press to prevent non-numeric input
+  const handlePhoneKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Allow: backspace, delete, tab, escape, enter, plus sign, and numbers
+    if (
+      e.key === 'Backspace' ||
+      e.key === 'Delete' ||
+      e.key === 'Tab' ||
+      e.key === 'Escape' ||
+      e.key === 'Enter' ||
+      e.key === '+' ||
+      e.key === ' ' ||
+      /[0-9]/.test(e.key)
+    ) {
+      return;
+    }
+    // Prevent any other key
+    e.preventDefault();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,7 +100,18 @@ const RegisterPage: React.FC = () => {
           </div>
           <div>
             <Label htmlFor="phone" className="text-black dark:text-white">Phone Number</Label>
-            <Input id="phone" type="text" placeholder="+212XXXXXXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} required className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" />
+            <Input 
+              id="phone" 
+              type="tel" 
+              placeholder="+212XXXXXXXXX" 
+              value={phone} 
+              onChange={handlePhoneChange}
+              onKeyDown={handlePhoneKeyPress}
+              pattern="[0-9+\s]+"
+              inputMode="numeric"
+              required 
+              className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600" 
+            />
           </div>
 
           <div>

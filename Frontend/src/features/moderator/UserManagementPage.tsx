@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
-import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { 
   Select,
   SelectContent,
@@ -12,6 +11,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../components/ui/select';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog';
+import { toast } from 'sonner';
+import { Trash2, Check, X, Search, RefreshCw } from 'lucide-react';
 
 interface User {
   _id: string;
@@ -32,6 +41,8 @@ const UserManagementPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'buyers' | 'partners' | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -61,8 +72,13 @@ const UserManagementPage: React.FC = () => {
   };
 
   const deleteUser = async (userId: string) => {
-    if (!confirm('Are you sure you want to delete this user?')) return;
-    
+    setSelectedUserId(userId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedUserId) return;
+
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -75,12 +91,16 @@ const UserManagementPage: React.FC = () => {
         'Content-Type': 'application/json'
       };
 
-      await axios.delete(`${API_BASE_URL}/users/${userId}`, { headers });
+      await axios.delete(`${API_BASE_URL}/users/${selectedUserId}`, { headers });
       toast.success('User deleted successfully');
       fetchUsers(); // Refresh the list
+      setIsDeleteDialogOpen(false);
+      setSelectedUserId(null);
     } catch (error: any) {
       console.error('Error deleting user:', error);
       toast.error('Failed to delete user', { description: error.response?.data?.message || 'Network error' });
+      setIsDeleteDialogOpen(false);
+      setSelectedUserId(null);
     }
   };
 
@@ -286,6 +306,25 @@ const UserManagementPage: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your user account.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
@@ -10,8 +10,24 @@ interface PrivateRouteProps {
 
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, roles }) => {
   const { isAuthenticated, user, loadingAuth } = useAuth();
+  const hasShownAuthToast = useRef(false);
+  const hasShownRoleToast = useRef(false);
 
   const allowedRoles = Array.isArray(roles) ? roles : [roles];
+
+  useEffect(() => {
+    if (!loadingAuth && !isAuthenticated && !hasShownAuthToast.current) {
+      toast.error("Authentication Required", { description: "You need to log in to access this page." });
+      hasShownAuthToast.current = true;
+    }
+  }, [isAuthenticated, loadingAuth]);
+
+  useEffect(() => {
+    if (!loadingAuth && isAuthenticated && user && !allowedRoles.includes(user.role as any) && !hasShownRoleToast.current) {
+      toast.error("Access Denied", { description: `You do not have the required role to access this page. Required: ${allowedRoles.join(', ')}. Your role: ${user.role}.` });
+      hasShownRoleToast.current = true;
+    }
+  }, [isAuthenticated, user, allowedRoles, loadingAuth]);
 
   if (loadingAuth) {
     return (
@@ -22,12 +38,10 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children, roles }) => {
   }
 
   if (!isAuthenticated) {
-    toast.error("Authentication Required", { description: "You need to log in to access this page." });
     return <Navigate to="/login" replace />;
   }
 
   if (user && !allowedRoles.includes(user.role as any)) {
-    toast.error("Access Denied", { description: `You do not have the required role to access this page. Required: ${allowedRoles.join(', ')}. Your role: ${user.role}.` });
     return <Navigate to="/" replace />;
   }
 

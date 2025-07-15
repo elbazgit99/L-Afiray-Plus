@@ -114,6 +114,8 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
 
   const sendMessageToBackend = async (messageText: string) => {
     try {
+      console.log('Sending message to backend:', messageText);
+      
       const response = await fetch('http://localhost:5000/api/chat', {
         method: 'POST',
         headers: {
@@ -129,25 +131,40 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
         })
       });
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
+      console.log('Backend response:', data);
 
       // Remove loading message and add bot response
       setMessages(prev => {
         const filtered = prev.filter(msg => !msg.isLoading);
         return [...filtered, {
           id: Date.now().toString(),
-          text: data.response || "I'm sorry, I couldn't process your request. Please try again.",
+          text: data.response || data.message || "I'm sorry, I couldn't process your request. Please try again.",
           sender: 'bot',
           timestamp: new Date()
         }];
       });
     } catch (error) {
       console.error('Chat error:', error);
+      
+      // Provide more specific error messages based on the error type
+      let errorMessage = "I'm sorry, there was an error processing your request. Please try again later.";
+      
+      if (error instanceof TypeError && error.message.includes('fetch')) {
+        errorMessage = "I'm having trouble connecting to the server. Please check your internet connection and try again.";
+      } else if (error.message.includes('HTTP error')) {
+        errorMessage = "The server is currently unavailable. Please try again in a few moments.";
+      }
+      
       setMessages(prev => {
         const filtered = prev.filter(msg => !msg.isLoading);
         return [...filtered, {
           id: Date.now().toString(),
-          text: "I'm sorry, there was an error processing your request. Please try again later.",
+          text: errorMessage,
           sender: 'bot',
           timestamp: new Date()
         }];
@@ -233,7 +250,9 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
                   "Find brake parts",
                   "Check order status", 
                   "Installation help",
-                  "Become a partner"
+                  "Become a partner",
+                  "Payment methods",
+                  "Return policy"
                 ].map((suggestion) => (
                   <Button
                     key={suggestion}

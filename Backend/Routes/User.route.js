@@ -1,55 +1,47 @@
 import express from 'express';
-import {
-    getAllUsers,
-    getUserById,
-    createUser,
-    updateUser,
-    deleteUser,
-    registerUser, // New: for user registration
-    loginUser,    // New: for user login
-    getPartners,
-    approvePartner,
-    rejectPartner,
-    createModerator,
+import { 
+    registerUser, 
+    loginUser, 
+    getAllUsers, 
+    getUserById, 
+    createUser, 
+    updateUser, 
+    deleteUser, 
+    approvePartner, 
+    rejectPartner, 
+    createModerator, 
     initializeModerator,
-    uploadProfileImage
+    forgotPassword,
+    resetPassword,
+    verifyResetCode
 } from '../Controllers/User.controller.js';
-import { authMiddleware, authorize } from '../Middleware/AuthMiddleware.js'; // Import both middlewares
-import ROLES from '../Constants/UserRoles.js'; // Import ROLES constant
+import { authenticateToken } from '../Middleware/AuthMiddleware.js';
+import { authorize } from '../Middleware/Roles.js';
+import ROLES from '../Constants/UserRoles.js';
 import upload from '../Middleware/uploadMiddleware.js'; // Import upload middleware
 
 const UserRouter = express.Router();
 
-// Public routes for authentication (no token required)
+// Public routes
 UserRouter.post('/register', registerUser);
 UserRouter.post('/login', loginUser);
+UserRouter.post('/forgot-password', forgotPassword);
+UserRouter.post('/reset-password', resetPassword);
+UserRouter.post('/initialize-moderator', initializeModerator);
+UserRouter.post('/verify-reset-code', verifyResetCode);
 
-// Test email route (for development/testing only)
-UserRouter.get('/test-email', async (req, res) => {
-  try {
-    const { sendEmail } = await import('../Config/emailService.js');
-    const result = await sendEmail('test@example.com', 'partnerApproved', {
-      partnerName: 'Test Partner',
-      companyName: 'Test Company'
-    });
-    res.json(result);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
+// Protected routes - require authentication
+UserRouter.use(authenticateToken);
 
-// Protected routes (require authentication and specific roles)
-// Moderator can manage all users
-UserRouter.get('/', authMiddleware, authorize([ROLES.MODERATOR]), getAllUsers);
-UserRouter.get('/partners', authMiddleware, authorize([ROLES.MODERATOR]), getPartners); // Get all partners
-UserRouter.get('/:id', authMiddleware, authorize([ROLES.MODERATOR, ROLES.PARTNER, ROLES.BUYER]), getUserById); // User can view their own, Moderator can view all
-UserRouter.post('/', authMiddleware, authorize([ROLES.MODERATOR]), createUser); // Moderator adds partners/users manually
-UserRouter.put('/:id', authMiddleware, authorize([ROLES.MODERATOR, ROLES.PARTNER, ROLES.BUYER]), updateUser); // Moderator can update any, User can update their own
-UserRouter.put('/profile-image', authMiddleware, authorize([ROLES.PARTNER, ROLES.BUYER, ROLES.MODERATOR]), upload.single('profileImage'), uploadProfileImage); // Upload profile image
-UserRouter.put('/:id/approve', authMiddleware, authorize([ROLES.MODERATOR]), approvePartner); // Approve partner
-UserRouter.put('/:id/reject', authMiddleware, authorize([ROLES.MODERATOR]), rejectPartner); // Reject partner
-UserRouter.delete('/:id', authMiddleware, authorize([ROLES.MODERATOR]), deleteUser); // Only Moderator can delete users
-UserRouter.post('/create-moderator', createModerator); // (Remove after first use!)
-UserRouter.post('/initialize-moderator', initializeModerator); // Public endpoint for first-time setup
+// Moderator only routes
+UserRouter.get('/', authorize(ROLES.MODERATOR), getAllUsers);
+UserRouter.get('/partners', authorize(ROLES.MODERATOR), getAllUsers);
+UserRouter.get('/:id', authorize(ROLES.MODERATOR), getUserById);
+UserRouter.post('/', authorize(ROLES.MODERATOR), createUser);
+UserRouter.put('/:id', updateUser); // User can update their own profile, moderator can update any
+UserRouter.delete('/:id', authorize(ROLES.MODERATOR), deleteUser);
+UserRouter.put('/:id/approve', authorize(ROLES.MODERATOR), approvePartner);
+UserRouter.put('/:id/reject', authorize(ROLES.MODERATOR), rejectPartner);
+UserRouter.post('/create-moderator', authorize(ROLES.MODERATOR), createModerator);
 
 export default UserRouter;

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';   
 import { Label } from '@/components/ui/label';
 import { ArrowLeft, Home } from 'lucide-react';  
+import ForgotPassword from '@/components/ForgotPassword';
 
 // IMPORTANT: Replace the content of this component with the actual code
 // correctly map to the state and functions below.
@@ -13,6 +14,7 @@ const Login: React.FC = () => {
   const { login, loadingAuth, isAuthenticated, user } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
 
   // Redirect if already authenticated
@@ -47,9 +49,24 @@ const Login: React.FC = () => {
     }
   };
 
+  const handleForgotPasswordSuccess = () => {
+    setShowForgotPassword(false);
+    // Optionally show a success message or redirect
+  };
+
   // If already authenticated, don't render the login form
   if (isAuthenticated) {
     return null;
+  }
+
+  // Show forgot password component
+  if (showForgotPassword) {
+    return (
+      <ForgotPassword 
+        onBack={() => setShowForgotPassword(false)}
+        onSuccess={handleForgotPasswordSuccess}
+      />
+    );
   }
 
   return (
@@ -92,6 +109,18 @@ const Login: React.FC = () => {
               className="mt-1 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
             />
           </div>
+          
+          {/* Forgot Password Link */}
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => setShowForgotPassword(true)}
+              className="text-sm text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white underline transition-colors"
+            >
+              Forgot Password?
+            </button>
+          </div>
+          
           <Button type="submit" className="w-full bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity" disabled={loadingAuth}>
             {loadingAuth ? "Logging in..." : "Login"}
           </Button>

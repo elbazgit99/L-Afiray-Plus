@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from './ui/button';
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 
@@ -19,6 +27,8 @@ const API_BASE_URL = 'http://localhost:5000/api';
 const TableUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const fetchUsers = async () => {
@@ -36,12 +46,16 @@ const TableUsers: React.FC = () => {
   };
 
   const handleDelete = async (userId: string) => {
-    if (!window.confirm("Are you sure you want to delete this user?")) { // Replace with custom modal in production
-      return;
-    }
+    setSelectedUserId(userId);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!selectedUserId) return;
+    
     setLoading(true);
     try {
-      await axios.delete(`${API_BASE_URL}/users/${userId}`);
+      await axios.delete(`${API_BASE_URL}/users/${selectedUserId}`);
       toast.success("User deleted successfully.");
       fetchUsers();
     } catch (error: any) {
@@ -49,6 +63,8 @@ const TableUsers: React.FC = () => {
       toast.error("Failed to delete user", { description: error.response?.data?.message || error.message });
     } finally {
       setLoading(false);
+      setIsDeleteDialogOpen(false);
+      setSelectedUserId(null);
     }
   };
 
@@ -113,6 +129,26 @@ const TableUsers: React.FC = () => {
           ))}
         </tbody>
       </table>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Are you absolutely sure?</DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This will permanently delete your account
+              and remove your data from our servers.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

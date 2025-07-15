@@ -5,12 +5,122 @@ import ROLES from '../Constants/UserRoles.js';
 import { sendEmail } from '../Config/emailService.js';
 import path from 'path';
 import fs from 'fs'; 
+import crypto from 'crypto';
 
 // to help function generate a JWT token
 const generateToken = (id, role) => {
     return jwt.sign({ id, role }, process.env.JWT_SECRET, {
         expiresIn: '1h', // Token expires in 1 hour
     });
+};
+
+// Generate a random 6-digit code
+const generateResetCode = () => {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+};
+
+// Forgot password - send reset code via email
+export const forgotPassword = async (req, res) => {
+    const { email } = req.body;
+
+    try {
+        // Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User with this email does not exist' });
+        }
+
+        // Generate reset code
+        const resetCode = generateResetCode();
+        
+        // Set reset token and expiration (10 minutes from now)
+        user.resetPasswordToken = resetCode;
+        user.resetPasswordExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+        await user.save();
+
+        // Send email with reset code
+        const emailResult = await sendEmail(email, 'passwordReset', {
+            userName: user.name,
+            resetCode: resetCode
+        });
+
+        if (emailResult.success) {
+            res.status(200).json({ 
+                message: 'Password reset code has been sent to your email',
+                email: email // Return email for frontend reference
+            });
+        } else {
+            // If email fails, clear the reset token
+            user.resetPasswordToken = null;
+            user.resetPasswordExpires = null;
+            await user.save();
+            
+            res.status(500).json({ message: 'Failed to send reset email. Please try again.' });
+        }
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({ message: 'Server error. Please try again.' });
+    }
+};
+
+// Reset password with code
+export const resetPassword = async (req, res) => {
+    const { email, resetCode, newPassword } = req.body;
+
+    try {
+        // Check if user exists
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User with this email does not exist' });
+        }
+
+        // Check if reset code matches and is not expired
+        if (!user.resetPasswordToken || user.resetPasswordToken !== resetCode) {
+            return res.status(400).json({ message: 'Invalid reset code' });
+        }
+
+        if (!user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+            return res.status(400).json({ message: 'Reset code has expired. Please request a new one.' });
+        }
+
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update password and clear reset fields
+        user.password = hashedPassword;
+        user.resetPasswordToken = null;
+        user.resetPasswordExpires = null;
+        await user.save();
+
+        res.status(200).json({ message: 'Password has been reset successfully' });
+
+    } catch (error) {
+        console.error('Reset password error:', error);
+        res.status(500).json({ message: 'Server error. Please try again.' });
+    }
+};
+
+// Verify reset code (new endpoint)
+export const verifyResetCode = async (req, res) => {
+    const { email, resetCode } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: 'User with this email does not exist' });
+        }
+        if (!user.resetPasswordToken || user.resetPasswordToken !== resetCode) {
+            return res.status(400).json({ message: 'Invalid reset code' });
+        }
+        if (!user.resetPasswordExpires || user.resetPasswordExpires < new Date()) {
+            return res.status(400).json({ message: 'Reset code has expired. Please request a new one.' });
+        }
+        return res.status(200).json({ message: 'Reset code is valid' });
+    } catch (error) {
+        console.error('Verify reset code error:', error);
+        res.status(500).json({ message: 'Server error. Please try again.' });
+    }
 };
 
 // Register a new user
@@ -496,18 +606,32 @@ export const uploadProfileImage = async (req, res) => {
             return res.status(400).json({ message: 'No image file provided' });
         }
 
-        const userId = req.user.id;
+        const userId = req.params.id || req.user.id;
         const user = await User.findById(userId);
         
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        // Check if user is authorized to update this profile
+        if (req.user.role !== ROLES.MODERATOR && req.user.id !== userId) {
+            return res.status(403).json({ message: 'You can only update your own profile image' });
+        }
+
+        console.log('Uploading profile image for user:', userId);
+        console.log('File received:', req.file);
+
         // Delete old profile image if it exists
         if (user.profileImage) {
-            const oldImagePath = path.join(process.cwd(), 'uploads', path.basename(user.profileImage));
-            if (fs.existsSync(oldImagePath)) {
-                fs.unlinkSync(oldImagePath);
+            try {
+                const oldImagePath = path.join(process.cwd(), 'uploads', path.basename(user.profileImage));
+                if (fs.existsSync(oldImagePath)) {
+                    fs.unlinkSync(oldImagePath);
+                    console.log('Deleted old profile image:', oldImagePath);
+                }
+            } catch (deleteError) {
+                console.warn('Could not delete old profile image:', deleteError.message);
+                // Continue with upload even if old image deletion fails
             }
         }
 
@@ -516,9 +640,17 @@ export const uploadProfileImage = async (req, res) => {
         user.profileImage = imageUrl;
         await user.save();
 
+        console.log('Profile image uploaded successfully:', imageUrl);
+
         res.json({ 
             message: 'Profile image uploaded successfully',
-            profileImage: imageUrl
+            profileImage: imageUrl,
+            user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                profileImage: user.profileImage
+            }
         });
 
     } catch (err) {

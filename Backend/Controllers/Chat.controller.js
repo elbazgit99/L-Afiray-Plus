@@ -23,7 +23,7 @@ Always be helpful, professional, and provide accurate information. If you don't 
 // Initialize OpenAI client only if API key is available
 let openai = null;
 try {
-  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here') {
+  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '' && process.env.OPENAI_API_KEY !== 'your-openai-api-key-here') {
     openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
@@ -48,8 +48,10 @@ const chatController = {
         });
       }
 
+      console.log('Chat request received:', { message, userId, context });
+
       // Check if OpenAI is available and configured
-      if (openai && process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY !== 'your_openai_api_key_here') {
+      if (openai && process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '' && process.env.OPENAI_API_KEY !== 'your-openai-api-key-here') {
         try {
           // Generate AI response using OpenAI
           const response = await generateOpenAIResponse(message, context);
@@ -151,9 +153,21 @@ async function generateOpenAIResponse(message, context) {
   }
 }
 
-// Fallback response system (original simple AI responses)
+// Fallback response system (improved simple AI responses)
 function generateFallbackResponse(message) {
   const lowerMessage = message.toLowerCase();
+
+  // Recognize car make/model/year patterns
+  const carMakes = [
+    'bmw','mercedes','audi','volkswagen','vw','toyota','honda','ford','chevrolet','nissan','hyundai','kia','mazda','subaru','lexus','infiniti','acura','volvo','saab','peugeot','renault','citroen','fiat','alfa romeo','jaguar','land rover','range rover','porsche','ferrari','lamborghini','maserati','bentley','rolls royce','aston martin','mclaren','mini','smart','dacia','skoda','seat','opel','vauxhall','lancia','bugatti','pagani','koenigsegg','noble','ariel','caterham','morgan','ginetta','radical','donkervoort','spyker'
+  ];
+  const carPattern = new RegExp(`\\b(${carMakes.join('|')})\\b`, 'i');
+  const yearPattern = /\b(19[8-9][0-9]|20[0-4][0-9]|2050)\b/;
+
+  if (carPattern.test(lowerMessage) && (yearPattern.test(lowerMessage) || /\b\d{4}\b/.test(lowerMessage))) {
+    // Looks like a car make/model/year
+    return "Thank you for providing your vehicle information! What part or service do you need for your " + message + "? (e.g. brake pads, oil filter, battery, etc.)";
+  }
   
   // Product search queries
   if (lowerMessage.includes('brake') || lowerMessage.includes('brakes')) {
@@ -172,6 +186,14 @@ function generateFallbackResponse(message) {
     return "We offer tires from top brands. To recommend the best options, I need your vehicle details and preferred tire type (all-season, summer, winter, etc.).";
   }
   
+  if (lowerMessage.includes('engine') || lowerMessage.includes('motor')) {
+    return "We have engine parts including filters, belts, hoses, and more. What specific engine part are you looking for? Please provide your vehicle make, model, and year.";
+  }
+  
+  if (lowerMessage.includes('transmission') || lowerMessage.includes('gear')) {
+    return "We carry transmission parts and fluids. To help you find the right parts, I need your vehicle details and transmission type (automatic or manual).";
+  }
+  
   // Order status queries
   if (lowerMessage.includes('order') && (lowerMessage.includes('status') || lowerMessage.includes('track'))) {
     return "I can help you check your order status! Please provide your order number, and I'll look it up for you. You can also check your order status in your dashboard.";
@@ -180,6 +202,10 @@ function generateFallbackResponse(message) {
   // Technical support
   if (lowerMessage.includes('install') || lowerMessage.includes('installation') || lowerMessage.includes('how to')) {
     return "I can provide installation guides for many auto parts! What specific part are you looking to install? I can share step-by-step instructions and safety tips.";
+  }
+  
+  if (lowerMessage.includes('maintenance') || lowerMessage.includes('service')) {
+    return "I can help with maintenance tips and service schedules! What type of maintenance are you looking for? Regular service, specific part maintenance, or troubleshooting?";
   }
   
   // Partner inquiries
@@ -215,6 +241,11 @@ function generateFallbackResponse(message) {
   // Return policy
   if (lowerMessage.includes('return') || lowerMessage.includes('refund') || lowerMessage.includes('warranty')) {
     return "We have a customer-friendly return policy. Most parts can be returned within 30 days if they're unused and in original packaging. Many parts also come with manufacturer warranties. What specific part are you asking about?";
+  }
+  
+  // Delivery queries
+  if (lowerMessage.includes('delivery') || lowerMessage.includes('shipping') || lowerMessage.includes('when')) {
+    return "We offer delivery across Morocco. Delivery times vary by location but typically take 2-5 business days. Express delivery options are available for urgent orders. Where are you located?";
   }
   
   // Default response

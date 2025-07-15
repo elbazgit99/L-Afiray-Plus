@@ -114,9 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       // Handle partner approval status
       if (error.response?.status === 403 && error.response?.data?.isApproved === false) {
-        toast.error("Account Pending Approval", { 
-          description: "Your partner account is pending approval. Please wait for moderator approval before accessing the platform." 
-        });
+        // Removed error toast for pending approval
       } else {
         toast.error("Login Failed", { description: error.response?.data?.message || "Invalid credentials." });
       }

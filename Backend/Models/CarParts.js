@@ -34,10 +34,10 @@ const CarPartSchema = new mongoose.Schema({
           trim: true,
           default: 'Universal'
      },
-     category: {
-          type: String,
-          required: [true, 'Part category is required'],
-          trim: true,
+     // New field to mark parts as featured
+     isFeatured: {
+          type: Boolean,
+          default: false
      },
      // References to the Producer and CarModel documents
      producer: {

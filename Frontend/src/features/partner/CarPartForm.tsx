@@ -180,7 +180,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
           <Input
             type="text"
             id="part-name"
-            placeholder="e.g., Spark Plug, Air Filter"
+            placeholder="Spark Plug, Air Filter"
             value={newPartName}
             onChange={(e) => setNewPartName(e.target.value)}
             className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
@@ -211,7 +211,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
           <Input
             type="number"
             id="part-price"
-            placeholder="e.g., 25.99"
+            placeholder="25.99"
             value={newPartPrice}
             onChange={(e) => setNewPartPrice(e.target.value)}
             className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
@@ -229,7 +229,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
           <Input
             type="text"
             id="part-brand"
-            placeholder="e.g., Bosch, NGK"
+            placeholder="Bosch, NGK"
             value={newPartBrand}
             onChange={(e) => setNewPartBrand(e.target.value)}
             className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"

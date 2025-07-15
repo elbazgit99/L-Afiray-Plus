@@ -33,13 +33,59 @@ export const getModelById = async (req, res) => {
 export const createModel = async (req, res) => {
     try {
         console.log('Creating car model with data:', req.body);
-        // FIX: Changed 'new Model' to 'new CarModel'
-        const newModel = new CarModel(req.body);
+        
+        // Validate required fields
+        const { name, producer, engine } = req.body;
+        
+        if (!name || !name.trim()) {
+            return res.status(400).json({ message: 'Car model name is required' });
+        }
+        
+        if (!producer) {
+            return res.status(400).json({ message: 'Producer ID is required' });
+        }
+        
+        // Check if model already exists for this producer
+        const existingModel = await CarModel.findOne({ 
+            name: name.trim(), 
+            producer: producer 
+        });
+        
+        if (existingModel) {
+            return res.status(400).json({ 
+                message: `A model with the name "${name.trim()}" already exists for this producer.` 
+            });
+        }
+        
+        // Create new model
+        const newModel = new CarModel({
+            name: name.trim(),
+            producer: producer,
+            engine: engine || 'Not specified'
+        });
+        
         const savedModel = await newModel.save();
         console.log('Saved car model:', savedModel);
+        
+        // Populate producer information before sending response
+        await savedModel.populate('producer', 'name');
+        
         res.status(201).json(savedModel);
     } catch (error) {
         console.error('Error creating car model:', error);
+        
+        // Handle specific error types
+        if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(err => err.message);
+            return res.status(400).json({ message: messages.join(', ') });
+        }
+        
+        if (error.code === 11000) {
+            return res.status(400).json({ 
+                message: 'A model with this name already exists for this producer.' 
+            });
+        }
+        
         res.status(400).json({ message: error.message });
     }
 };

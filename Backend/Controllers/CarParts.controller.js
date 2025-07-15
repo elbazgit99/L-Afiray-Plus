@@ -225,3 +225,44 @@ export const getCarPartsByProducer = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+// Get featured car parts only
+export const getFeaturedCarParts = async (req, res) => {    
+    try {
+        const featuredParts = await CarPart.find({ isFeatured: true })
+            .populate('model', 'name engine')
+            .populate('producer', 'name');
+        
+        console.log('Fetched featured car parts:', featuredParts.length);
+        res.json(featuredParts);
+    } catch (err) {
+        console.error('Error fetching featured car parts:', err);
+        res.status(500).json({ error: err.message });
+    }
+};
+
+// Toggle featured status of a car part (Moderator only)
+export const toggleFeaturedStatus = async (req, res) => {
+    try {
+        const carPart = await CarPart.findById(req.params.id);
+        if (!carPart) {
+            return res.status(404).json({ error: 'Car part not found' });
+        }
+
+        // Toggle the featured status
+        carPart.isFeatured = !carPart.isFeatured;
+        await carPart.save();
+
+        res.json({
+            message: `Car part "${carPart.name}" ${carPart.isFeatured ? 'featured' : 'unfeatured'} successfully`,
+            carPart: {
+                _id: carPart._id,
+                name: carPart.name,
+                isFeatured: carPart.isFeatured
+            }
+        });
+    } catch (err) {
+        console.error('Error toggling featured status:', err);
+        res.status(500).json({ error: err.message });
+    }
+};

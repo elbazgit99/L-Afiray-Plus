@@ -10,8 +10,12 @@ A comprehensive car parts marketplace platform built with React, Node.js, and Mo
 - **Email Notifications**: Automatic email notifications for approval/rejection
 - **Car Parts Management**: Add, edit, and manage car parts inventory
 - **Car Models Management**: Organize parts by car models
+- **Featured Car Parts**: Moderators can feature specific parts on homepage
 - **User Management**: Complete user CRUD operations
-- **Responsive Design**: Modern UI with dark/light theme support
+- **Responsive Design**: Modern UI with black/white theme
+- **AI Chatbot**: Intelligent customer support with vehicle recognition
+- **Payment Integration**: Secure payment processing
+- **Order Management**: Complete order lifecycle management
 
 ### User Roles
 
@@ -20,7 +24,9 @@ A comprehensive car parts marketplace platform built with React, Node.js, and Mo
 - Manage all users and partners
 - View platform analytics
 - Content moderation
+- Feature/unfeature car parts
 - Email notifications for partner status changes
+- User management with proper UI dialogs
 
 #### 🏢 Partner (Producer)
 - Register company information
@@ -29,6 +35,7 @@ A comprehensive car parts marketplace platform built with React, Node.js, and Mo
 - View sales reports
 - Order management
 - Profile management
+- Pending approval status with clean UI
 
 #### 🛒 Buyer
 - Browse car parts catalog
@@ -36,6 +43,7 @@ A comprehensive car parts marketplace platform built with React, Node.js, and Mo
 - Place orders
 - View order history
 - Profile management
+- Featured car parts display
 
 ## 🛠️ Tech Stack
 
@@ -45,8 +53,9 @@ A comprehensive car parts marketplace platform built with React, Node.js, and Mo
 - **Tailwind CSS** for styling
 - **Radix UI** components
 - **React Router** for navigation
-- **Axios** for API calls
+- **Axios** for API calls with authentication
 - **Sonner** for notifications
+- **Lucide React** for icons
 
 ### Backend
 - **Node.js** with Express
@@ -56,12 +65,14 @@ A comprehensive car parts marketplace platform built with React, Node.js, and Mo
 - **Nodemailer** for email notifications
 - **Multer** for file uploads
 - **CORS** enabled
+- **OpenAI API** for chatbot functionality
 
 ## 📋 Prerequisites
 
 - Node.js (v18 or higher)
 - MongoDB (local or cloud)
 - Git
+- Gmail account with 2FA enabled (for email notifications)
 
 ## 🚀 Installation & Setup
 
@@ -84,39 +95,48 @@ cd ..
 
 ### 3. Environment Configuration
 
-Create a `.env` file in the root directory:
+Create a `.env` file in the **Backend** directory:
 
 ```env
 # Server Configuration
 PORT=5000
-JWT_SECRET=your-jwt-secret-key-here
-
-# Database Configuration
-DB_URI=mongodb://localhost:27017/lafiray_db
-# Or use MongoDB Atlas:
-# DB_URI=mongodb+srv://username:password@cluster.mongodb.net/lafiray_db
-
-# Email Configuration (for partner notifications)
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASSWORD=your-app-password
 FRONTEND_URL=http://localhost:5173
 
-# Moderator Configuration
-MODERATOR_EMAIL=lafiray@moderator.ma
-MODERATOR_PASSWORD=lafiray@moderator.ma
-MODERATOR_NAME=L'Afiray Moderator
-MODERATOR_PHONE=+2125 000 00000
+# Database Configuration
+DB_URI=mongodb://localhost:27017/l-afiray
+USER_NAME=lafirayApp
+PASSWORD=pstqXKcXOZAHrpZO
 
-# OpenAI Configuration (optional)
+# Email Configuration (Gmail)
+EMAIL_USER=lafiray@moderator.ma
+EMAIL_PASSWORD=lafiray@moderator.ma
+
+# Service Email (for partner notifications)
+EMAIL_SERVICE=lafirayservice@gmail.com
+SERVICE_EMAIL_PASSWORD=your-16-character-app-password
+
+# JWT Secret (authentication)
+JWT_SECRET=your-jwt-secret-key-here
+
+# OpenAI API Key (for chatbot)
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-### 4. Setup Moderator Account
+### 4. Gmail Setup for Email Notifications
+
+1. **Enable 2-Factor Authentication** on `lafirayservice@gmail.com`
+2. **Generate App Password**:
+   - Go to Google Account → Security → 2-Step Verification → App passwords
+   - Select "Mail" and generate password
+   - Copy the 16-character password
+3. **Update .env file** with the app password
+
+### 5. Setup Moderator Account
 ```bash
 npm run setup-moderator
 ```
 
-### 5. Start the Application
+### 6. Start the Application
 
 #### Start Backend Server
 ```bash
@@ -138,11 +158,6 @@ Frontend will run on: `http://localhost:5173` or `http://localhost:5174`
 - **Password**: `lafiray@moderator.ma`
 - **Access**: Full moderator dashboard
 
-### Test Partner Account
-- **Email**: `lafiray@partner4.ma`
-- **Password**: (set during registration)
-- **Status**: Approved
-
 ## 🔧 API Endpoints
 
 ### Authentication
@@ -162,9 +177,11 @@ Frontend will run on: `http://localhost:5173` or `http://localhost:5174`
 
 ### Car Parts Management
 - `GET /api/carparts` - Get all car parts
+- `GET /api/carparts/featured` - Get featured car parts
 - `POST /api/carparts` - Create new car part
 - `PUT /api/carparts/:id` - Update car part
 - `DELETE /api/carparts/:id` - Delete car part
+- `PUT /api/carparts/:id/feature` - Toggle featured status
 
 ### Car Models Management
 - `GET /api/models` - Get all car models
@@ -178,6 +195,9 @@ Frontend will run on: `http://localhost:5173` or `http://localhost:5174`
 - `PUT /api/producers/:id` - Update producer
 - `DELETE /api/producers/:id` - Delete producer
 
+### Chat System
+- `POST /api/chat` - Send message to AI chatbot
+
 ## 📧 Email System
 
 The platform includes automatic email notifications for partner approval/rejection:
@@ -187,10 +207,9 @@ The platform includes automatic email notifications for partner approval/rejecti
 - **Partner Rejected**: Professional rejection with next steps
 
 ### Email Configuration
-For Gmail:
-1. Enable 2-factor authentication
-2. Generate an App Password
-3. Use the App Password in `EMAIL_PASSWORD`
+- **Service Email**: `lafirayservice@gmail.com`
+- **Gmail App Password**: Required for authentication
+- **Automatic Notifications**: Sent on approval/rejection
 
 ## 🔐 Security Features
 
@@ -200,15 +219,22 @@ For Gmail:
 - CORS protection
 - Input validation
 - Secure file uploads
+- Protected API routes
 
-## 🎨 UI Components
+## 🎨 UI Components & Design
 
-The application uses a custom UI component library built with:
-- Radix UI primitives
-- Tailwind CSS styling
-- Dark/light theme support
-- Responsive design
-- Accessibility features
+### Theme
+- **Black and White Design**: Clean, minimalist interface
+- **Dark/Light Mode**: Automatic theme switching
+- **Responsive Design**: Mobile-first approach
+- **Accessibility**: WCAG compliant components
+
+### Recent UI Improvements
+- Removed unnecessary status icons and notices
+- Streamlined approval pending page
+- Improved error handling without duplicate toasts
+- Better navigation with proper authentication
+- Clean contact support integration
 
 ## 📁 Project Structure
 
@@ -223,92 +249,116 @@ L-Afiray.ma/
 │   ├── Controllers/
 │   │   ├── User.controller.js
 │   │   ├── CarParts.controller.js
-│   │   └── ...
+│   │   ├── CarModel.controller.js
+│   │   ├── Chat.controller.js
+│   │   └── Moderation.controller.js
 │   ├── Middleware/
 │   │   ├── AuthMiddleware.js
+│   │   ├── Roles.js
 │   │   └── uploadMiddleware.js
 │   ├── Models/
 │   │   ├── User.js
 │   │   ├── CarParts.js
-│   │   └── ...
+│   │   ├── CarModel.js
+│   │   └── Producer.js
 │   ├── Routes/
 │   │   ├── User.route.js
 │   │   ├── CarParts.route.js
-│   │   └── ...
+│   │   ├── CarModel.route.js
+│   │   ├── Chat.route.js
+│   │   └── Moderation.route.js
+│   ├── uploads/
 │   └── server.js
 ├── Frontend/
 │   ├── src/
 │   │   ├── components/
 │   │   │   ├── ui/
-│   │   │   └── ...
+│   │   │   ├── ApprovalPendingBanner.tsx
+│   │   │   ├── ChatBot.tsx
+│   │   │   └── PrivateRoute.tsx
 │   │   ├── features/
 │   │   │   ├── moderator/
 │   │   │   ├── partner/
-│   │   │   └── buyer/
+│   │   │   ├── buyer/
+│   │   │   └── pages/
 │   │   ├── context/
 │   │   │   └── AuthContext.tsx
-│   │   └── ...
+│   │   └── hooks/
 │   └── ...
-├── uploads/
+├── .env
 └── package.json
 ```
 
-## 🚀 Deployment
+## 🚀 Recent Updates
 
-### Backend Deployment
-1. Set up MongoDB (local or cloud)
-2. Configure environment variables
-3. Install dependencies: `npm install`
-4. Start server: `npm run dev` or `npm start`
+### v2.1.0 - Email & UI Improvements
+- ✅ **Fixed Email Configuration**: Proper Gmail app password setup
+- ✅ **Updated Service Email**: Now using `lafirayservice@gmail.com`
+- ✅ **UI Cleanup**: Removed unnecessary elements and improved design
+- ✅ **Authentication Fixes**: Proper token handling in API requests
+- ✅ **Error Handling**: Improved error messages and toast notifications
+- ✅ **Featured Car Parts**: Moderators can feature/unfeature parts
+- ✅ **Chatbot Improvements**: Better vehicle recognition and responses
+- ✅ **Navigation Fixes**: Proper logout and redirect functionality
 
-### Frontend Deployment
-1. Build the project: `npm run build`
-2. Deploy the `dist` folder to your hosting service
-3. Configure API base URL for production
+### v2.0.0 - Core Features
+- ✅ **Partner Approval System**: Complete approval workflow
+- ✅ **Email Notifications**: Automatic approval/rejection emails
+- ✅ **Car Parts Management**: Full CRUD operations
+- ✅ **User Management**: Role-based access control
+- ✅ **Responsive Design**: Mobile-friendly interface
 
 ## 🧪 Testing
 
 ### Test Email Configuration
-Visit: `http://localhost:5000/api/users/test-email`
+1. Ensure Gmail 2FA is enabled
+2. Generate app password
+3. Update `.env` file
+4. Test partner approval/rejection
 
 ### Test Partner Registration
 1. Register as a partner
 2. Check approval status
 3. Verify email notifications
+4. Test login after approval
 
 ### Test Moderator Functions
 1. Login as moderator
 2. Approve/reject partners
 3. Manage users and content
+4. Feature/unfeature car parts
 
 ## 🔧 Troubleshooting
 
 ### Common Issues
 
 1. **Email Not Sending**
-   - Check email credentials in `.env`
-   - Verify SMTP settings
-   - Test email configuration endpoint
+   - ✅ Check Gmail 2FA is enabled
+   - ✅ Verify app password in `.env`
+   - ✅ Ensure `EMAIL_SERVICE` and `SERVICE_EMAIL_PASSWORD` are set
+   - ✅ Test email configuration
 
-2. **Database Connection Issues**
-   - Verify MongoDB is running
-   - Check connection string in `.env`
-   - Ensure database exists
+2. **Authentication Errors**
+   - ✅ Check JWT token in localStorage
+   - ✅ Verify API base URL
+   - ✅ Ensure proper CORS configuration
 
-3. **Login Issues**
-   - Verify user exists in database
-   - Check approval status for partners
-   - Ensure correct credentials
+3. **Database Connection Issues**
+   - ✅ Verify MongoDB is running
+   - ✅ Check connection string in `.env`
+   - ✅ Ensure database exists
 
-4. **CORS Issues**
-   - Check frontend URL in CORS configuration
-   - Verify API base URL in frontend
+4. **Frontend API Errors**
+   - ✅ Check authentication token
+   - ✅ Verify backend server is running
+   - ✅ Check browser console for errors
 
 ### Debug Steps
 1. Check server logs for errors
 2. Verify environment variables
 3. Test API endpoints directly
 4. Check browser console for frontend errors
+5. Verify email configuration with test endpoint
 
 ## 🤝 Contributing
 
@@ -332,7 +382,7 @@ This project is licensed under the ISC License.
 
 For support and questions:
 - Create an issue on GitHub
-- Email: support@lafiray.ma
+- Email: lafirayservice@gmail.com
 - Phone: +212 5 00 00 00 00
 
 ---

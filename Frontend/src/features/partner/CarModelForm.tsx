@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { toast } from 'sonner';
 
 interface Producer {
   _id: string;
@@ -35,9 +36,28 @@ const CarModelForm: React.FC<CarModelFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await onAddModel(newCarModelName, selectedProducerIdForModel, engineType);
-    setNewCarModelName('');
-    setEngineType('');
+    
+    // Validate form data
+    if (!selectedProducerIdForModel) {
+      toast.error('Please select a producer');
+      return;
+    }
+    
+    if (!newCarModelName.trim()) {
+      toast.error('Please enter a car model name');
+      return;
+    }
+    
+    try {
+      await onAddModel(newCarModelName, selectedProducerIdForModel, engineType);
+      setNewCarModelName('');
+      setEngineType('');
+      toast.success('Car model added successfully!');
+    } catch (error) {
+      console.error('Error in CarModelForm:', error);
+      toast.error('Failed to add car model.');
+      // Error handling is done in the parent component
+    }
   };
 
   return (

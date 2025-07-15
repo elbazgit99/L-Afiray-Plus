@@ -77,12 +77,29 @@ interface Dispute {
   resolution?: string;
 }
 
+interface CarPart {
+  _id: string;
+  name: string;
+  description: string;
+  imageUrl: string;
+  imageFilename?: string;
+  price: number;
+  brand: string;
+  category: string;
+  isFeatured: boolean;
+  producer: { _id: string; name: string; };
+  model: { _id: string; name: string; engine?: string; };
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 const API_BASE_URL = 'http://localhost:5000/api';
 
 const ContentModerationPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'reports' | 'disputes' | 'audit'>('reports');
+  const [activeTab, setActiveTab] = useState<'reports' | 'disputes' | 'audit' | 'featured'>('reports');
   const [reportedContent, setReportedContent] = useState<ReportedContent[]>([]);
   const [disputes, setDisputes] = useState<Dispute[]>([]);
+  const [carParts, setCarParts] = useState<CarPart[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedReport, setSelectedReport] = useState<ReportedContent | null>(null);
   const [selectedDispute, setSelectedDispute] = useState<Dispute | null>(null);
@@ -91,6 +108,7 @@ const ContentModerationPage: React.FC = () => {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterPriority, setFilterPriority] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [featuredFilter, setFeaturedFilter] = useState<'all' | 'featured' | 'not-featured'>('all');
 
   // Sample data for demonstration
   const sampleReports: ReportedContent[] = [
@@ -194,10 +212,11 @@ const ContentModerationPage: React.FC = () => {
         'Content-Type': 'application/json'
       };
 
-      // Load reports and disputes in parallel
-      const [reportsResponse, disputesResponse] = await Promise.allSettled([
+      // Load reports, disputes, and car parts in parallel
+      const [reportsResponse, disputesResponse, carPartsResponse] = await Promise.allSettled([
         axios.get(`${API_BASE_URL}/moderation/reports`, { headers }),
-        axios.get(`${API_BASE_URL}/moderation/disputes`, { headers })
+        axios.get(`${API_BASE_URL}/moderation/disputes`, { headers }),
+        axios.get(`${API_BASE_URL}/carparts`, { headers })
       ]);
 
       if (reportsResponse.status === 'fulfilled') {
@@ -212,6 +231,13 @@ const ContentModerationPage: React.FC = () => {
       } else {
         console.error('Failed to load disputes:', disputesResponse.reason);
         setDisputes(sampleDisputes);
+      }
+
+      if (carPartsResponse.status === 'fulfilled') {
+        setCarParts(carPartsResponse.value.data);
+      } else {
+        console.error('Failed to load car parts:', carPartsResponse.reason);
+        setCarParts([]);
       }
     } catch (error) {
       console.error('Error loading moderation data:', error);
@@ -309,6 +335,38 @@ const ContentModerationPage: React.FC = () => {
     }
   };
 
+  const handleToggleFeatured = async (partId: string) => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      const response = await axios.patch(
+        `${API_BASE_URL}/carparts/${partId}/toggle-featured`,
+        {},
+        { headers }
+      );
+
+      // Update local state
+      const updatedCarParts = carParts.map(part => 
+        part._id === partId ? { ...part, isFeatured: !part.isFeatured } : part
+      );
+      setCarParts(updatedCarParts);
+      
+      toast.success(response.data.message);
+    } catch (error) {
+      console.error('Error toggling featured status:', error);
+      toast.error('Failed to update featured status');
+    }
+  };
+
   const filteredReports = reportedContent.filter(report => {
     const matchesStatus = filterStatus === 'all' || report.status === filterStatus;
     const matchesPriority = filterPriority === 'all' || report.priority === filterPriority;
@@ -324,6 +382,17 @@ const ContentModerationPage: React.FC = () => {
                          dispute.sellerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          dispute.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesPriority && matchesSearch;
+  });
+
+  const filteredCarParts = carParts.filter(part => {
+    const matchesFeatured = featuredFilter === 'all' || 
+      (featuredFilter === 'featured' && part.isFeatured) ||
+      (featuredFilter === 'not-featured' && !part.isFeatured);
+    const matchesSearch = part.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         part.brand.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         part.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         part.producer?.name.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFeatured && matchesSearch;
   });
 
   if (loading) {
@@ -381,6 +450,17 @@ const ContentModerationPage: React.FC = () => {
         >
           <Clock className="w-4 h-4 inline mr-2" />
           Audit Trail
+        </button>
+        <button
+          onClick={() => setActiveTab('featured')}
+          className={`px-4 py-2 rounded-lg transition-colors ${
+            activeTab === 'featured'
+              ? 'bg-black dark:bg-white text-white dark:text-black'
+              : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+          }`}
+        >
+          <Package className="w-4 h-4 inline mr-2" />
+          Featured Parts ({carParts.filter(p => p.isFeatured).length})
         </button>
       </div>
 
@@ -565,6 +645,122 @@ const ContentModerationPage: React.FC = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+      )}
+
+      {/* Featured Car Parts Tab */}
+      {activeTab === 'featured' && (
+        <div className="space-y-4">
+          {/* Featured Filter */}
+          <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-700">
+            <CardContent className="pt-6">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <Label htmlFor="search" className="text-black dark:text-white mb-2 block">Search Parts</Label>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      id="search"
+                      placeholder="Search by part name, brand, or category..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600"
+                    />
+                  </div>
+                </div>
+                <div className="sm:w-48">
+                  <Label className="text-black dark:text-white mb-2 block">Featured Status</Label>
+                  <Select value={featuredFilter} onValueChange={(value: 'all' | 'featured' | 'not-featured') => setFeaturedFilter(value)}>
+                    <SelectTrigger className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Parts</SelectItem>
+                      <SelectItem value="featured">Featured Only</SelectItem>
+                      <SelectItem value="not-featured">Not Featured</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Car Parts List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredCarParts.map((part) => (
+              <Card key={part._id} className="bg-white dark:bg-black border-gray-200 dark:border-gray-700">
+                <CardContent className="pt-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-black dark:text-white line-clamp-2">
+                      {part.name}
+                    </h3>
+                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                      part.isFeatured 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' 
+                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+                    }`}>
+                      {part.isFeatured ? 'FEATURED' : 'NOT FEATURED'}
+                    </span>
+                  </div>
+                  
+                  <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                    <p><strong>Brand:</strong> {part.brand}</p>
+                    <p><strong>Category:</strong> {part.category}</p>
+                    <p><strong>Producer:</strong> {part.producer?.name}</p>
+                    <p><strong>Model:</strong> {part.model?.name}</p>
+                    <p><strong>Price:</strong> {part.price} DH</p>
+                    {part.description && (
+                      <p className="line-clamp-2"><strong>Description:</strong> {part.description}</p>
+                    )}
+                  </div>
+                  
+                  <div className="mt-4 flex justify-between items-center">
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      Created: {new Date(part.createdAt!).toLocaleDateString()}
+                    </p>
+                    <Button
+                      onClick={() => handleToggleFeatured(part._id)}
+                      variant={part.isFeatured ? "outline" : "default"}
+                      className={`${
+                        part.isFeatured 
+                          ? 'border-red-300 text-red-700 hover:bg-red-50 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900/20' 
+                          : 'bg-green-600 hover:bg-green-700 text-white'
+                      }`}
+                      size="sm"
+                    >
+                      {part.isFeatured ? (
+                        <>
+                          <X className="w-4 h-4 mr-1" />
+                          Unfeature
+                        </>
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4 mr-1" />
+                          Feature
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          
+          {filteredCarParts.length === 0 && (
+            <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-700">
+              <CardContent className="pt-6 text-center">
+                <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-600 dark:text-gray-400">
+                  {featuredFilter === 'featured' 
+                    ? 'No featured car parts found.' 
+                    : featuredFilter === 'not-featured' 
+                      ? 'No non-featured car parts found.' 
+                      : 'No car parts found matching your search.'
+                  }
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 

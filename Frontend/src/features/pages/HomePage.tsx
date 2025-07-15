@@ -127,6 +127,11 @@ const HomePage: React.FC = () => {
     return searchMatch && producerMatch && engineMatch && modelMatch;
   });
 
+  // Filtered parts for the current partner (if logged in as partner)
+  const partnerParts = user && user.role === 'PARTNER'
+    ? filteredParts.filter(part => part.producer && part.producer._id === user._id)
+    : filteredParts;
+
   // Clear all filters
   const clearFilters = () => {
     setSelectedProducer('all');
@@ -186,19 +191,19 @@ const HomePage: React.FC = () => {
   const fetchPartnerContent = async () => {
     setLoading(true);
     try {
-      console.log('Fetching car parts from:', `${API_BASE_URL}/carparts`);
+      console.log('Fetching featured car parts from:', `${API_BASE_URL}/carparts/featured`);
       
-      // Fetch all car parts for homepage
-      console.log('Making API call to:', `${API_BASE_URL}/carparts`);
-      const partsResponse = await axios.get<CarPart[]>(`${API_BASE_URL}/carparts`);
-      console.log('Car parts response:', partsResponse.data);
-      console.log('Total car parts found:', partsResponse.data.length);
+      // Fetch featured car parts for homepage
+      console.log('Making API call to:', `${API_BASE_URL}/carparts/featured`);
+      const partsResponse = await axios.get<CarPart[]>(`${API_BASE_URL}/carparts/featured`);
+      console.log('Featured car parts response:', partsResponse.data);
+      console.log('Total featured car parts found:', partsResponse.data.length);
       console.log('Response status:', partsResponse.status);
       
       // Debug: Check the structure of the first car part
       if (partsResponse.data.length > 0) {
         const firstPart = partsResponse.data[0];
-        console.log('First car part structure:', {
+        console.log('First featured car part structure:', {
           _id: firstPart._id,
           name: firstPart.name,
           producer: firstPart.producer,
@@ -212,19 +217,19 @@ const HomePage: React.FC = () => {
       
       // Debug: Log each part to see the structure
       if (partsResponse.data.length > 0) {
-        console.log('Sample car part structure:', partsResponse.data[0]);
-        console.log('Sample car part imageUrl:', partsResponse.data[0].imageUrl);
-        console.log('Sample car part imageFilename:', partsResponse.data[0].imageFilename);
-        console.log('All car parts:', partsResponse.data);
+        console.log('Sample featured car part structure:', partsResponse.data[0]);
+        console.log('Sample featured car part imageUrl:', partsResponse.data[0].imageUrl);
+        console.log('Sample featured car part imageFilename:', partsResponse.data[0].imageFilename);
+        console.log('All featured car parts:', partsResponse.data);
       } else {
-        console.log('No car parts found in database');
+        console.log('No featured car parts found in database');
       }
       
-      // Show all parts instead of limiting to 6
+      // Set featured parts
       setFeaturedParts(partsResponse.data);
       console.log('featuredParts set with length:', partsResponse.data.length);
       
-      // Fetch car parts for categories section
+      // Fetch all car parts for categories section (not just featured)
       const categoriesResponse = await axios.get<CarPart[]>(`${API_BASE_URL}/carparts`);
       setCategoriesData(categoriesResponse.data);
 
@@ -444,18 +449,18 @@ const HomePage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white px-6 sm:px-12 lg:px-24">
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
       {/* Header */}
-      <header className="bg-white dark:bg-black shadow-sm border-b border-gray-200 dark:border-gray-800">
+      <header className="sticky top-0 z-50 bg-white dark:bg-black shadow-sm border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <h1 className="text-2xl font-bold text-black dark:text-white">L'Afiray.ma</h1>
               <span className="text-sm text-gray-600 dark:text-gray-400">Your Auto Parts Hub</span>
             </div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               {isAuthenticated ? (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <span className="text-sm text-gray-600 dark:text-gray-400">Welcome, {user?.name}</span>
                   <Button
                     onClick={handleDashboardRedirect}
@@ -474,7 +479,7 @@ const HomePage: React.FC = () => {
                   </Button>
                 </div>
               ) : (
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-3">
                   <Button
                     onClick={() => navigate('/login')}
                     className="bg-black text-white dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
@@ -498,10 +503,10 @@ const HomePage: React.FC = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-black dark:bg-white text-white dark:text-black py-16 px-6 sm:px-12 lg:px-24 relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
+      <section className="bg-black dark:bg-black text-white dark:text-white py-16 px-6 sm:px-12 lg:px-24 relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white dark:text-black">Find Your Perfect Auto Parts</h2>
-          <p className="text-xl md:text-2xl mb-8 text-white dark:text-black">Quality parts from trusted partners across Morocco</p>
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white dark:text-white">Find Your Perfect Auto Parts</h2>
+          <p className="text-xl md:text-2xl mb-8 text-white dark:text-white">Quality parts from trusted partners across Morocco</p>
           
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto mt-12 mb-8 relative">
@@ -515,7 +520,7 @@ const HomePage: React.FC = () => {
                   onFocus={handleInputFocus}
                   onBlur={closeSuggestions}
                   onKeyDown={handleKeyPress}
-                  className="w-full bg-white dark:bg-zinc-800 text-black dark:text-white border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white px-4 py-3 text-lg rounded-lg"
+                  className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white px-4 py-3 text-lg rounded-lg"
                   autoComplete="off"
                 />
               </div>
@@ -523,7 +528,7 @@ const HomePage: React.FC = () => {
                 type="button" 
                 onClick={handleSearch} 
                 variant="outline"
-                className="bg-transparent border border-white dark:border-black text-white dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors font-semibold text-lg px-8 py-3 rounded-lg shadow-sm"
+                className="bg-transparent border border-white dark:border-white text-white dark:text-white hover:bg-white hover:text-black dark:hover:bg-gray-800 dark:hover:text-white transition-colors font-semibold text-lg px-8 py-3 rounded-lg shadow-sm"
               >
                 <Search className="w-5 h-5 mr-2" />
                 Search
@@ -560,7 +565,7 @@ const HomePage: React.FC = () => {
                     <SelectTrigger className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                       <SelectValue placeholder="Select producer" className="text-black dark:text-white !text-black dark:!text-white" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-700">
+                    <SelectContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
                       <SelectItem value="all" className="text-black dark:text-white">All Producers</SelectItem>
                       {uniqueProducers.map((producer) => (
                         <SelectItem key={producer} value={producer} className="text-black dark:text-white">
@@ -580,7 +585,7 @@ const HomePage: React.FC = () => {
                     <SelectTrigger className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                       <SelectValue placeholder="Select engine" className="text-black dark:text-white !text-black dark:!text-white" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-700">
+                    <SelectContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
                       <SelectItem value="all" className="text-black dark:text-white">All Engines</SelectItem>
                       {uniqueEngines.map((engine) => (
                         <SelectItem key={engine} value={engine} className="text-black dark:text-white">
@@ -605,7 +610,7 @@ const HomePage: React.FC = () => {
                     <SelectTrigger className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
                       <SelectValue placeholder="Select model" className="text-black dark:text-white !text-black dark:!text-white" />
                     </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-zinc-800 border border-gray-200 dark:border-gray-700">
+                    <SelectContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
                       <SelectItem value="all" className="text-black dark:text-white">All Models</SelectItem>
                       {availableModels.length > 0 ? (
                         availableModels.map((model) => (
@@ -639,7 +644,7 @@ const HomePage: React.FC = () => {
                         onMouseDown={() => handleSuggestionClick('part', part)}
                       >
                         <Package className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        <span className="font-medium">{part.name}</span>
+                        <span className="font-medium text-black dark:text-white">{part.name}</span>
                         <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">{part.brand}</span>
                       </div>
                     ))}
@@ -658,7 +663,7 @@ const HomePage: React.FC = () => {
                         onMouseDown={() => handleSuggestionClick('model', model)}
                       >
                         <Car className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        <span className="font-medium">{model.name}</span>
+                        <span className="font-medium text-black dark:text-white">{model.name}</span>
                         <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">{model.producer?.name}</span>
                       </div>
                     ))}
@@ -677,7 +682,7 @@ const HomePage: React.FC = () => {
                         onMouseDown={() => handleSuggestionClick('producer', producer)}
                       >
                         <Building2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        <span className="font-medium">{producer.name}</span>
+                        <span className="font-medium text-black dark:text-white">{producer.name}</span>
                       </div>
                     ))}
                   </div>
@@ -703,7 +708,7 @@ const HomePage: React.FC = () => {
             <Button
               onClick={() => navigate('/register')}
               variant="outline"
-              className="bg-transparent border border-white dark:border-black text-white dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
+              className="bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
               size="lg"
             >
               Become a Partner
@@ -712,20 +717,19 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Featured Car Parts Section */}
-      <section className="py-16 px-6 sm:px-12 lg:px-24">
+      {/* Available Car Parts Section */}
+      <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4">
-              {isSearchActive ? 'Search Results' : hasActiveFilters ? 'Filtered Car Parts' : 'Featured Car Parts'}
+            <h3 className="text-3xl font-bold mb-4 text-black dark:text-white">
+              {isSearchActive ? 'Search Results' : hasActiveFilters ? 'Filtered Car Parts' : 'Available Car Parts'}
             </h3>
             <p className="text-black dark:text-white text-lg">
               {isSearchActive 
                 ? `Found ${filteredResults.parts.length} part${filteredResults.parts.length !== 1 ? 's' : ''} for "${searchQuery}"`
                 : hasActiveFilters 
                   ? `Showing ${filteredParts.length} of ${featuredParts.length} parts`
-                  : 'Browse auto parts created by our trusted partners'
-              }
+                  : 'Browse auto parts created by our trusted partners'}
             </p>
             {isSearchActive && (
               <Button
@@ -739,46 +743,38 @@ const HomePage: React.FC = () => {
             )}
           </div>
 
-
-          
-          {(isSearchActive ? filteredResults.parts : filteredParts).length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-              {(isSearchActive ? filteredResults.parts : filteredParts.slice(0, 8)).map((part, index) => (
-                                <div key={part._id} className="bg-white dark:bg-black rounded-lg shadow-sm overflow-hidden border border-black dark:border-gray-700 hover:shadow-md hover:scale-[1.02] transition-all duration-300 group cursor-pointer flex flex-col h-80">
-                  <img
-                    src={getImageUrl(part.imageUrl, part.imageFilename, `https://placehold.co/400x400/E0E0E0/333333?text=${encodeURIComponent(part.name)}`)}
-                    alt={part.name}
-                    className="w-full h-24 object-cover"
-                    onError={handleImageError}
-                    onLoad={() => console.log('Image loaded successfully for part:', part.name)}
-                  />
-                  <div className="p-4 flex flex-col flex-1">
-                    <div className="flex-1">
-                      <h4 className="text-lg font-semibold mb-2 text-black dark:text-white group-hover:text-black dark:group-hover:text-white transition-colors text-left line-clamp-2">{part.name}</h4>
-                      <div className="space-y-1 text-xs text-black dark:text-white">
-                        <p><span className="font-medium">Category:</span> {part.category}</p>
-                        <p><span className="font-medium">Brand:</span> {part.brand}</p>
-                        <p><span className="font-medium">Producer:</span> {part.producer?.name}</p>
-                        <p><span className="font-medium">Model:</span> {part.model?.name}</p>
-                        {part.compatibility && (
-                          <p><span className="font-medium">Compatibility:</span> {part.compatibility}</p>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                      <span className="text-lg font-bold text-black dark:text-white">{part.price} DH</span>
-                      <Button
-                        onClick={() => handleBuyClick(part)}
-                        className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-sm py-2 px-6 rounded-lg font-semibold shadow-sm border-0"
-                      >
-                        Buy Now
-                      </Button>
-                    </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+            {(isSearchActive ? filteredResults.parts : filteredParts).map((part, index) => (
+              <div key={part._id} className="bg-white dark:bg-black rounded-lg shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 hover:shadow-md hover:scale-[1.02] transition-all duration-300 group cursor-pointer flex flex-col h-80">
+                <img
+                  src={getImageUrl(part.imageUrl, part.imageFilename, `https://placehold.co/400x400/E0E0E0/333333?text=${encodeURIComponent(part.name)}`)}
+                  alt={part.name}
+                  className="w-full h-24 object-cover"
+                  onError={handleImageError}
+                  onLoad={() => console.log('Image loaded successfully for part:', part.name)}
+                />
+                <div className="flex-1">
+                  <h4 className="text-lg font-semibold mb-2 text-black dark:text-white group-hover:text-black dark:group-hover:text-white transition-colors text-left line-clamp-2">{part.name}</h4>
+                  <div className="space-y-1 text-xs text-black dark:text-white">
+                    <p><span className="font-medium">Brand:</span> {part.brand}</p>
+                    <p><span className="font-medium">Producer:</span> {part.producer?.name}</p>
+                    <p><span className="font-medium">Model:</span> {part.model?.name}</p>
+                    {part.compatibility && (
+                      <p><span className="font-medium">Compatibility:</span> {part.compatibility}</p>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
+                <span className="text-lg font-bold text-black dark:text-white">{part.price} DH</span>
+                <Button
+                  onClick={() => handleBuyClick(part)}
+                  className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-sm py-2 px-6 rounded-lg font-semibold shadow-sm border-0"
+                >
+                  Buy
+                </Button>
+              </div>
+            ))}
+          </div>
+          {(isSearchActive ? filteredResults.parts : filteredParts).length === 0 && (
             <div className="text-center py-12">
               {isSearchActive ? (
                 <>
@@ -810,15 +806,7 @@ const HomePage: React.FC = () => {
               )}
             </div>
           )}
-          
-          <div className="text-center mt-12">
-            <Button
-              onClick={() => navigate('/parts-catalog')}
-              className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors px-8 py-4 rounded-lg shadow-sm text-lg"
-            >
-              View All Parts
-            </Button>
-          </div>
+          {/* Removed the 'View All Parts' button */}
         </div>
       </section>
 
@@ -826,7 +814,7 @@ const HomePage: React.FC = () => {
       <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4">
+            <h3 className="text-3xl font-bold mb-4 text-black dark:text-white">
               {isSearchActive ? 'Matching Car Models' : 'Popular Car Models'}
             </h3>
             <p className="text-black dark:text-white text-lg">
@@ -843,7 +831,7 @@ const HomePage: React.FC = () => {
                 <div 
                   key={model._id} 
                   onClick={() => handleModelCardClick(model)}
-                  className="bg-white dark:bg-black rounded-lg p-6 text-center hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-black dark:border-gray-700"
+                  className="bg-white dark:bg-black rounded-lg p-6 text-center hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-700"
                 >
                   <h4 className="font-semibold mb-2 text-black dark:text-white">{model.name}</h4>
                   <p className="text-sm text-black dark:text-white">{model.producer?.name}</p>
@@ -863,10 +851,10 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Top Producers Section */}
-      <section className="py-16 px-6 sm:px-12 lg:px-24">
+      <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4">
+            <h3 className="text-3xl font-bold mb-4 text-black dark:text-white">
               {isSearchActive ? 'Matching Producers' : 'Trusted Producers'}
             </h3>
             <p className="text-black dark:text-white text-lg">
@@ -880,7 +868,7 @@ const HomePage: React.FC = () => {
           {(isSearchActive ? filteredResults.producers : topProducers).length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
               {(isSearchActive ? filteredResults.producers : topProducers).map((producer) => (
-                <div key={producer._id} className="bg-white dark:bg-black rounded-lg p-6 text-center border border-black dark:border-gray-700 hover:shadow-md hover:scale-[1.02] transition-all duration-300 group">
+                <div key={producer._id} className="bg-white dark:bg-black rounded-lg p-6 text-center border border-gray-200 dark:border-gray-700 hover:shadow-md hover:scale-[1.02] transition-all duration-300 group">
                   <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600">
                     <span className="text-2xl font-bold text-black dark:text-white">
                       {producer.name.charAt(0)}
@@ -903,14 +891,14 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-black dark:bg-white text-white dark:text-black px-6 sm:px-12 lg:px-24 relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
+      <section className="py-16 bg-black dark:bg-black text-white dark:text-white px-6 sm:px-12 lg:px-24 relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 text-center relative z-10">
-          <h3 className="text-3xl font-bold mb-4 text-white dark:text-black">Ready to Get Started?</h3>
-          <p className="text-xl mb-8 text-white dark:text-black">Join thousands of customers who trust L'Afiray.ma for their auto parts needs</p>
+          <h3 className="text-3xl font-bold mb-4 text-white dark:text-white">Ready to Get Started?</h3>
+          <p className="text-xl mb-8 text-white dark:text-white">Join thousands of customers who trust L'Afiray.ma for their auto parts needs</p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button
               onClick={() => navigate('/register')}
-              className="bg-white dark:bg-black text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
+              className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
               size="lg"
             >
               Create Account
@@ -918,7 +906,7 @@ const HomePage: React.FC = () => {
             <Button
               onClick={() => navigate('/parts-catalog')}
               variant="outline"
-              className="bg-transparent border border-white dark:border-black text-white dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
+              className="bg-transparent border border-white dark:border-white text-white dark:text-white hover:bg-white hover:text-black dark:hover:bg-gray-800 dark:hover:text-white transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
               size="lg"
             >
               Browse Parts
@@ -928,17 +916,17 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-black dark:bg-white text-white dark:text-black py-8 px-6 sm:px-12 lg:px-24 border-t border-gray-200 dark:border-gray-800">
+      <footer className="bg-black dark:bg-black text-white dark:text-white py-8 px-6 sm:px-12 lg:px-24 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center">
-            <h4 className="text-xl font-bold mb-4">L'Afiray.ma</h4>
-            <p className="text-white dark:text-black mb-6">Your trusted partner for quality auto parts in Morocco</p>
+            <h4 className="text-xl font-bold mb-4 text-white dark:text-white">L'Afiray.ma</h4>
+            <p className="text-white dark:text-white mb-6">Your trusted partner for quality auto parts in Morocco</p>
             
             {/* Social Media Icons */}
             <div className="flex justify-center space-x-6 mb-6">
               <a 
                 href="#" 
-                className="flex items-center space-x-2 text-gray-400 dark:text-gray-600 hover:text-white dark:hover:text-black transition-colors"
+                className="flex items-center space-x-2 text-gray-400 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                 title="Follow us on X (Twitter)"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -949,7 +937,7 @@ const HomePage: React.FC = () => {
               
               <a 
                 href="#" 
-                className="flex items-center space-x-2 text-gray-400 dark:text-gray-600 hover:text-white dark:hover:text-black transition-colors"
+                className="flex items-center space-x-2 text-gray-400 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                 title="Follow us on Facebook"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -960,7 +948,7 @@ const HomePage: React.FC = () => {
               
               <a 
                 href="#" 
-                className="flex items-center space-x-2 text-gray-400 dark:text-gray-600 hover:text-white dark:hover:text-black transition-colors"
+                className="flex items-center space-x-2 text-gray-400 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                 title="Follow us on Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -971,7 +959,7 @@ const HomePage: React.FC = () => {
               
               <a 
                 href="#" 
-                className="flex items-center space-x-2 text-gray-400 dark:text-gray-600 hover:text-white dark:hover:text-black transition-colors"
+                className="flex items-center space-x-2 text-gray-400 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
                 title="Follow us on LinkedIn"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -981,7 +969,7 @@ const HomePage: React.FC = () => {
               </a>
             </div>
             
-            <div className="flex justify-center space-x-6 text-sm text-white dark:text-black">
+            <div className="flex justify-center space-x-6 text-sm text-white dark:text-white">
               <span>© 2025 L'Afiray.ma</span>
               <span>•</span>
               <button 
@@ -1262,7 +1250,7 @@ const HomePage: React.FC = () => {
       />
       
       {/* Fixed Mode Toggle */}
-      <div className="fixed top-4 right-4 z-50">
+      <div className="fixed top-20 right-4 z-50">
         <ModeToggle />
       </div>
     </div>

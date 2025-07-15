@@ -22,7 +22,16 @@ const storage = multer.diskStorage({
     // Create unique filename with timestamp and original extension
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const fileExtension = path.extname(file.originalname);
-    const filename = `carpart-${uniqueSuffix}${fileExtension}`;
+    
+    // Determine file type based on field name or route
+    let prefix = 'file';
+    if (file.fieldname === 'profileImage') {
+      prefix = 'profile';
+    } else if (file.fieldname === 'imageFile') {
+      prefix = 'carpart';
+    }
+    
+    const filename = `${prefix}-${uniqueSuffix}${fileExtension}`;
     console.log('Saving file:', filename, 'to:', uploadsDir);
     cb(null, filename);
   }
@@ -30,9 +39,12 @@ const storage = multer.diskStorage({
 
 // File filter to only allow images
 const fileFilter = (req, file, cb) => {
+  // Check if the file is an image
   if (file.mimetype.startsWith('image/')) {
+    console.log('File accepted:', file.originalname, 'Type:', file.mimetype);
     cb(null, true);
   } else {
+    console.log('File rejected:', file.originalname, 'Type:', file.mimetype);
     cb(new Error('Only image files are allowed!'), false);
   }
 };
