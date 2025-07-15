@@ -1,90 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState } from 'react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/dialog';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ModeToggle } from '../../components/mode-toggle';
-import { Search, Package, Car, Building2, Filter, X, CreditCard, Lock } from 'lucide-react';
-import { toast } from 'sonner';
-import { getImageUrl, handleImageError } from '@/lib/imageUtils';
+import { Search, X } from 'lucide-react';
 import ChatBot from '../../components/ChatBot';
 import logoLight from '../../assets/logo-light.png';
 import logoDark from '../../assets/logo-dark.png';
 
-// Define interfaces for the data structures
-interface CarPart {
-  _id: string;
-  name: string;
-  description: string;
-  imageUrl: string;
-  imageFilename?: string;
-  price: number;
-  brand: string;
-  category: string;
-  compatibility?: string;
-  producer: { _id: string; name: string; };
-  model: { _id: string; name: string; engine?: string; };
-  createdAt?: string;
-  updatedAt?: string;
-}
-
-interface CarModel {
-  _id: string;
-  name: string;
-  engine?: string;
-  producer: { _id: string; name: string; };
-}
-
-interface Producer {
-  _id: string;
-  name: string;
-}
-
-const API_BASE_URL = 'http://localhost:5000/api';
-
 const HomePage: React.FC = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const navigate = useNavigate();
-  // State for partner content
-  const [featuredParts, setFeaturedParts] = useState<CarPart[]>([]);
-  const [categoriesData, setCategoriesData] = useState<CarPart[]>([]);
-  const [popularModels, setPopularModels] = useState<CarModel[]>([]);
-  const [topProducers, setTopProducers] = useState<Producer[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Search state
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [showSuggestions, setShowSuggestions] = useState(false);
-  const [filteredResults, setFilteredResults] = useState<{
-    parts: CarPart[];
-    models: CarModel[];
-    producers: Producer[];
-  }>({ parts: [], models: [], producers: [] });
-
-  // Filter states
-  const [selectedProducer, setSelectedProducer] = useState<string>('all');
-  const [selectedEngine, setSelectedEngine] = useState<string>('all');
-  const [selectedModel, setSelectedModel] = useState<string>('all');
-  const [showAllParts, setShowAllParts] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
-
-  // Payment modal states
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [selectedPart, setSelectedPart] = useState<CarPart | null>(null);
-  const [paymentData, setPaymentData] = useState({
-    cardNumber: '',
-    cardHolder: '',
-    expiryDate: '',
-    cvv: ''
-  });
-
-  // Car model details modal states
-  const [showModelDetails, setShowModelDetails] = useState(false);
-  const [selectedModelDetails, setSelectedModelDetails] = useState<CarModel | null>(null);
-  const [isSearchActive, setIsSearchActive] = useState(false);
-
+  
   // ChatBot states
   const [showChatBot, setShowChatBot] = useState(false);
 
@@ -92,203 +23,7 @@ const HomePage: React.FC = () => {
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
-
-  // Get unique values for filters
-  const uniqueProducers = Array.from(new Set(featuredParts.map(part => part.producer?.name).filter(Boolean)));
-  const uniqueEngines = Array.from(new Set(featuredParts.map(part => part.model?.engine).filter((engine): engine is string => Boolean(engine && engine !== 'Not specified'))));
-  
-  // Get models based on selected producer (cascading filter)
-  const getModelsForSelectedProducer = () => {
-    if (selectedProducer === 'all' || !selectedProducer) {
-      // If no producer is selected, show all models
-      return Array.from(new Set(featuredParts.map(part => part.model?.name).filter(Boolean)));
-    } else {
-      // If a producer is selected, show only models from that producer
-      return Array.from(new Set(
-        featuredParts
-          .filter(part => part.producer?.name === selectedProducer)
-          .map(part => part.model?.name)
-          .filter(Boolean)
-      ));
-    }
-  };
-  
-  const availableModels = getModelsForSelectedProducer();
-
-  // Filtered parts based on selected filters and search query
-  const filteredParts = featuredParts.filter(part => {
-    // Search query filter
-    const searchMatch = !searchQuery.trim() || 
-      part.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
-      part.brand.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
-      part.category.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
-      part.producer?.name.toLowerCase().includes(searchQuery.toLowerCase().trim()) ||
-      part.model?.name.toLowerCase().includes(searchQuery.toLowerCase().trim());
-    
-    // Filter dropdowns
-    const producerMatch = !selectedProducer || selectedProducer === 'all' || part.producer?.name === selectedProducer;
-    const engineMatch = !selectedEngine || selectedEngine === 'all' || (part.model?.engine && part.model.engine !== 'Not specified' && part.model.engine === selectedEngine);
-    const modelMatch = !selectedModel || selectedModel === 'all' || part.model?.name === selectedModel;
-    
-    return searchMatch && producerMatch && engineMatch && modelMatch;
-  });
-
-  // Filtered parts for the current partner (if logged in as partner)
-  const partnerParts = user && user.role === 'PARTNER'
-    ? filteredParts.filter(part => part.producer && part.producer._id === user._id)
-    : filteredParts;
-
-  // Clear all filters
-  const clearFilters = () => {
-    setSelectedProducer('all');
-    setSelectedEngine('all');
-    setSelectedModel('all');
-    setSearchQuery('');
-    setIsSearchActive(false);
-    setFilteredResults({ parts: [], models: [], producers: [] });
-  };
-
-  // Handle producer change - reset model selection
-  const handleProducerChange = (producer: string) => {
-    setSelectedProducer(producer);
-    // Reset model selection when producer changes
-    setSelectedModel('all');
-  };
-
-  // Check if any filters are active
-  const hasActiveFilters = (selectedProducer && selectedProducer !== 'all') || (selectedEngine && selectedEngine !== 'all') || (selectedModel && selectedModel !== 'all') || searchQuery.trim();
-
-  // Clear search function
-  const clearSearch = () => {
-    setSearchQuery('');
-    setFilteredResults({ parts: [], models: [], producers: [] });
-    setIsSearchActive(false);
-    setShowSuggestions(false);
-  };
-
-  // Debug: Log the filtering results
-  console.log('Filtering debug:', {
-    totalParts: featuredParts.length,
-    filteredParts: filteredParts.length,
-    selectedProducer,
-    selectedEngine,
-    selectedModel,
-    hasActiveFilters
-  });
-
-  // Debug: Log selected values for filter inputs
-  console.log('Selected filter values:', {
-    selectedProducer,
-    selectedEngine,
-    selectedModel
-  });
-
-  // Debug: Log engine data
-  console.log('Engine data debug:', {
-    uniqueEngines,
-    samplePartWithEngine: featuredParts.length > 0 ? {
-      partName: featuredParts[0].name,
-      modelName: featuredParts[0].model?.name,
-      modelEngine: featuredParts[0].model?.engine
-    } : null
-  });
-
-  // Move fetchPartnerContent outside useEffect so it can be called by the Refresh button
-  const fetchPartnerContent = async () => {
-    setLoading(true);
-    try {
-      console.log('Fetching featured car parts from:', `${API_BASE_URL}/carparts/featured`);
-      
-      // Fetch featured car parts for homepage
-      console.log('Making API call to:', `${API_BASE_URL}/carparts/featured`);
-      const partsResponse = await axios.get<CarPart[]>(`${API_BASE_URL}/carparts/featured`);
-      console.log('Featured car parts response:', partsResponse.data);
-      console.log('Total featured car parts found:', partsResponse.data.length);
-      console.log('Response status:', partsResponse.status);
-      
-      // Debug: Check the structure of the first car part
-      if (partsResponse.data.length > 0) {
-        const firstPart = partsResponse.data[0];
-        console.log('First featured car part structure:', {
-          _id: firstPart._id,
-          name: firstPart.name,
-          producer: firstPart.producer,
-          model: firstPart.model,
-          producerType: typeof firstPart.producer,
-          modelType: typeof firstPart.model,
-          producerName: firstPart.producer?.name,
-          modelName: firstPart.model?.name
-        });
-      }
-      
-      // Debug: Log each part to see the structure
-      if (partsResponse.data.length > 0) {
-        console.log('Sample featured car part structure:', partsResponse.data[0]);
-        console.log('Sample featured car part imageUrl:', partsResponse.data[0].imageUrl);
-        console.log('Sample featured car part imageFilename:', partsResponse.data[0].imageFilename);
-        console.log('All featured car parts:', partsResponse.data);
-      } else {
-        console.log('No featured car parts found in database');
-      }
-      
-      // Set featured parts
-      setFeaturedParts(partsResponse.data);
-      console.log('featuredParts set with length:', partsResponse.data.length);
-      
-      // Fetch all car parts for categories section (not just featured)
-      const categoriesResponse = await axios.get<CarPart[]>(`${API_BASE_URL}/carparts`);
-      setCategoriesData(categoriesResponse.data);
-
-      // Fetch car models (handle missing endpoint gracefully)
-      try {
-        const modelsResponse = await axios.get<CarModel[]>(`${API_BASE_URL}/models`);
-        console.log('Car models response:', modelsResponse.data);
-        setPopularModels(modelsResponse.data.slice(0, 8));
-      } catch (error) {
-        console.log('Car models endpoint not available, using empty array');
-        setPopularModels([]);
-      }
-
-      // Fetch producers (handle missing endpoint gracefully)
-      try {
-        const producersResponse = await axios.get<Producer[]>(`${API_BASE_URL}/producers`);
-        console.log('Producers response:', producersResponse.data);
-        setTopProducers(producersResponse.data.slice(0, 6));
-      } catch (error) {
-        console.log('Producers endpoint not available, using empty array');
-        setTopProducers([]);
-      }
-
-    } catch (error: any) {
-      console.error("Failed to fetch partner content:", error);
-      console.error("Error details:", error.response?.data);
-      console.error("Error status:", error.response?.status);
-      console.error("Error message:", error.message);
-      console.error("Full error object:", error);
-      toast.error('Failed to Load Content', {
-        description: 'Some content may not be available. Please try again later.',
-        duration: 6000
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    console.log('HomePage useEffect triggered');
-    fetchPartnerContent();
-  }, []);
-
-  // Debug useEffect to monitor featuredParts state
-  useEffect(() => {
-    console.log('featuredParts state changed:', featuredParts);
-    console.log('featuredParts length:', featuredParts.length);
-    if (featuredParts.length > 0) {
-      console.log('First featured part:', featuredParts[0]);
-    }
-  }, [featuredParts]);
-
-
+  const [showInstructions, setShowInstructions] = useState(false);
 
   const handleDashboardRedirect = () => {
     if (user?.role === 'MODERATOR') {
@@ -300,88 +35,9 @@ const HomePage: React.FC = () => {
     }
   };
 
-  const handleBuyClick = (part: CarPart) => {
-    setSelectedPart(part);
-    setShowPaymentModal(true);
-  };
-
-  const handlePaymentInputChange = (field: string, value: string) => {
-    setPaymentData(prev => ({
-      ...prev,
-      [field]: value
-    }));
-  };
-
-  const handlePaymentSubmit = async () => {
-    if (!selectedPart) return;
-
-    // Validate payment data
-    if (!paymentData.cardNumber || !paymentData.cardHolder || !paymentData.expiryDate || !paymentData.cvv) {
-      toast.error('Payment Error', {
-        description: 'Please fill in all payment fields.',
-        duration: 4000
-      });
-      return;
-    }
-
-    try {
-      // Here you would typically send the payment data to your backend
-      // For now, we'll simulate a successful payment
-      toast.success('Payment Successful!', {
-        description: `Your order for ${selectedPart.name} has been processed successfully.`,
-        duration: 5000
-      });
-      
-      setShowPaymentModal(false);
-      setSelectedPart(null);
-      setPaymentData({
-        cardNumber: '',
-        cardHolder: '',
-        expiryDate: '',
-        cvv: ''
-      });
-    } catch (error) {
-      toast.error('Payment Failed', {
-        description: 'There was an error processing your payment. Please try again.',
-        duration: 4000
-      });
-    }
-  };
-
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase().trim();
-      
-      // Filter existing data
-      const filteredParts = featuredParts.filter(part => 
-        part.name.toLowerCase().includes(query) ||
-        part.brand.toLowerCase().includes(query) ||
-        part.category.toLowerCase().includes(query) ||
-        part.producer?.name.toLowerCase().includes(query) ||
-        part.model?.name.toLowerCase().includes(query)
-      );
-      
-      const filteredModels = popularModels.filter(model => 
-        model.name.toLowerCase().includes(query) ||
-        model.producer?.name.toLowerCase().includes(query)
-      );
-      
-      const filteredProducers = topProducers.filter(producer => 
-        producer.name.toLowerCase().includes(query)
-      );
-      
-      setFilteredResults({
-        parts: filteredParts,
-        models: filteredModels,
-        producers: filteredProducers
-      });
-      
-      setIsSearchActive(true);
-      setShowSuggestions(false);
-    } else {
-      setShowSuggestions(false);
-      setFilteredResults({ parts: [], models: [], producers: [] });
-      setIsSearchActive(false);
+      navigate(`/parts-catalog?search=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -392,67 +48,12 @@ const HomePage: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    
-    if (value.trim()) {
-      handleSearch();
-    } else {
-      setShowSuggestions(false);
-      setFilteredResults({ parts: [], models: [], producers: [] });
-      setIsSearchActive(false);
-    }
+    setSearchQuery(e.target.value);
   };
 
-  const handleSuggestionClick = (type: 'part' | 'model' | 'producer', item: any) => {
-    setSearchQuery(item.name);
-    setShowSuggestions(false);
+  const clearSearch = () => {
+    setSearchQuery('');
   };
-
-  const closeSuggestions = () => {
-    setTimeout(() => setShowSuggestions(false), 200);
-  };
-
-  // --- SEARCH SUGGESTIONS LOGIC ---
-  // Compute suggestions: show all if input is empty, else filtered
-  const suggestions = React.useMemo(() => {
-    if (searchQuery.trim() === '') {
-      return {
-        parts: featuredParts,
-        models: popularModels,
-        producers: topProducers
-      };
-    }
-    return filteredResults;
-  }, [searchQuery, featuredParts, popularModels, topProducers, filteredResults]);
-
-  // Show suggestions when input is focused
-  const handleInputFocus = () => {
-    setShowSuggestions(true);
-  };
-
-  const handleModelCardClick = (model: CarModel) => {
-    setSelectedModelDetails(model);
-    setShowModelDetails(true);
-  };
-
-
-
-  // Debug logging before render
-  console.log('HomePage render - loading:', loading, 'featuredParts.length:', featuredParts.length);
-  console.log('HomePage component is rendering!');
-  console.log('featuredParts data:', featuredParts);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white px-6 sm:px-12 lg:px-24">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black dark:border-white mx-auto mb-4"></div>
-          <p>Loading L'Afiray.ma...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
@@ -473,7 +74,6 @@ const HomePage: React.FC = () => {
                   className="w-44 h-16 hidden dark:block"
                 />
               </span>
-              {/* Removed the text 'L'Afiray.ma' and subtitle */}
             </div>
             <div className="flex items-center space-x-6">
               {isAuthenticated ? (
@@ -534,12 +134,18 @@ const HomePage: React.FC = () => {
                   placeholder="Search by producer, car model, or car part..."
                   value={searchQuery}
                   onChange={handleInputChange}
-                  onFocus={handleInputFocus}
-                  onBlur={closeSuggestions}
                   onKeyDown={handleKeyPress}
                   className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 shadow-sm focus:ring-2 focus:ring-black dark:focus:ring-white focus:border-black dark:focus:border-white px-4 py-3 text-lg rounded-lg"
                   autoComplete="off"
                 />
+                {searchQuery && (
+                  <button
+                    onClick={clearSearch}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-400"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                )}
               </div>
               <Button 
                 type="button" 
@@ -551,167 +157,6 @@ const HomePage: React.FC = () => {
                 Search
               </Button>
             </div>
-
-            {/* Filter Section - Always Visible */}
-            <div className="bg-white dark:bg-black rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold text-black dark:text-white flex items-center gap-2">
-                  <Filter className="w-5 h-5" />
-                  Filter Parts
-                </h4>
-                {hasActiveFilters && (
-                  <Button
-                    onClick={clearFilters}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Clear All
-                  </Button>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                {/* Producer Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                    Car Producer
-                  </label>
-                  <Select value={selectedProducer} onValueChange={handleProducerChange}>
-                    <SelectTrigger className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                      <SelectValue placeholder="Select producer" className="text-black dark:text-white !text-black dark:!text-white" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
-                      <SelectItem value="all" className="text-black dark:text-white">All Producers</SelectItem>
-                      {uniqueProducers.map((producer) => (
-                        <SelectItem key={producer} value={producer} className="text-black dark:text-white">
-                          {producer}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Engine Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                    Engine Type
-                  </label>
-                  <Select value={selectedEngine} onValueChange={setSelectedEngine}>
-                    <SelectTrigger className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                      <SelectValue placeholder="Select engine" className="text-black dark:text-white !text-black dark:!text-white" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
-                      <SelectItem value="all" className="text-black dark:text-white">All Engines</SelectItem>
-                      {uniqueEngines.map((engine) => (
-                        <SelectItem key={engine} value={engine} className="text-black dark:text-white">
-                          {engine}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Car Model Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                    Car Model
-                    {selectedProducer !== 'all' && selectedProducer && (
-                      <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                        ({availableModels.length} available)
-                      </span>
-                    )}
-                  </label>
-                  <Select value={selectedModel} onValueChange={setSelectedModel}>
-                    <SelectTrigger className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                      <SelectValue placeholder="Select model" className="text-black dark:text-white !text-black dark:!text-white" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
-                      <SelectItem value="all" className="text-black dark:text-white">All Models</SelectItem>
-                      {availableModels.length > 0 ? (
-                        availableModels.map((model) => (
-                          <SelectItem key={model} value={model} className="text-black dark:text-white">
-                            {model}
-                          </SelectItem>
-                        ))
-                      ) : selectedProducer !== 'all' && selectedProducer ? (
-                        <SelectItem value="no-models" disabled className="text-gray-400 dark:text-gray-500">
-                          No models available for {selectedProducer}
-                        </SelectItem>
-                      ) : null}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            {/* Suggestions Dropdown */}
-            {showSuggestions && (
-              <div className="absolute z-20 mt-2 w-full bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm max-h-80 overflow-y-auto transition-all">
-                {/* Car Parts */}
-                {suggestions.parts.length > 0 && (
-                  <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                      <Package className="w-4 h-4" /> Car Parts
-                    </div>
-                    {suggestions.parts.map((part) => (
-                      <div
-                        key={part._id}
-                        className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                        onMouseDown={() => handleSuggestionClick('part', part)}
-                      >
-                        <Package className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        <span className="font-medium text-black dark:text-white">{part.name}</span>
-                        <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">{part.brand}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* Car Models */}
-                {suggestions.models.length > 0 && (
-                  <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                      <Car className="w-4 h-4" /> Car Models
-                    </div>
-                    {suggestions.models.map((model) => (
-                      <div
-                        key={model._id}
-                        className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                        onMouseDown={() => handleSuggestionClick('model', model)}
-                      >
-                        <Car className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        <span className="font-medium text-black dark:text-white">{model.name}</span>
-                        <span className="ml-auto text-xs text-gray-500 dark:text-gray-400">{model.producer?.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* Producers */}
-                {suggestions.producers.length > 0 && (
-                  <div>
-                    <div className="px-4 py-2 text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                      <Building2 className="w-4 h-4" /> Producers
-                    </div>
-                    {suggestions.producers.map((producer) => (
-                      <div
-                        key={producer._id}
-                        className="flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                        onMouseDown={() => handleSuggestionClick('producer', producer)}
-                      >
-                        <Building2 className="w-4 h-4 text-gray-400 dark:text-gray-500" />
-                        <span className="font-medium text-black dark:text-white">{producer.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {/* No results */}
-                {suggestions.parts.length === 0 && suggestions.models.length === 0 && suggestions.producers.length === 0 && (
-                  <div className="px-4 py-6 text-center text-gray-400 dark:text-gray-500 text-sm">
-                    No results found.
-                  </div>
-                )}
-              </div>
-            )}
           </div>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center mt-8">
@@ -734,217 +179,21 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Available Car Parts Section */}
-      <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24">
-        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4 text-black dark:text-white">
-              {isSearchActive ? 'Search Results' : hasActiveFilters ? 'Filtered Car Parts' : 'Available Car Parts'}
-            </h3>
-            <p className="text-black dark:text-white text-lg">
-              {isSearchActive 
-                ? `Found ${filteredResults.parts.length} part${filteredResults.parts.length !== 1 ? 's' : ''} for "${searchQuery}"`
-                : hasActiveFilters 
-                  ? `Showing ${filteredParts.length} of ${featuredParts.length} parts`
-                  : 'Browse auto parts created by our trusted partners'}
-            </p>
-            {isSearchActive && (
-              <Button
-                onClick={clearSearch}
-                variant="outline"
-                className="mt-4 bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Clear Search
-              </Button>
-            )}
-          </div>
-          {(isSearchActive ? filteredResults.parts : filteredParts).length === 0 ? (
-            <div className="text-center py-12">
-              {isSearchActive ? (
-                <>
-                  <p className="text-black dark:text-white text-lg mb-4">No parts found for "{searchQuery}".</p>
-                  <Button
-                    onClick={clearSearch}
-                    variant="outline"
-                    className="bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-                  >
-                    Clear Search
-                  </Button>
-                </>
-              ) : hasActiveFilters ? (
-                <>
-                  <p className="text-black dark:text-white text-lg mb-4">No parts found matching your filters.</p>
-                  <Button
-                    onClick={clearFilters}
-                    variant="outline"
-                    className="bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-                  >
-                    Clear Filters
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p className="text-black dark:text-white text-lg">No car parts available yet.</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Partners will add parts here once they create them.</p>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {(isSearchActive ? filteredResults.parts : filteredParts).map((part) => (
-                <div key={part._id} className="bg-zinc-50 dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 p-2 flex flex-col h-80 w-full">
-                  <img
-                    src={getImageUrl(part.imageUrl, part.imageFilename, 'https://placehold.co/300x200/E0E0E0/333333?text=No+Image')}
-                    alt={part.name}
-                    className="w-full h-32 object-cover rounded-md mb-2"
-                    onError={handleImageError}
-                  />
-                  <h3 className="text-lg font-semibold text-black dark:text-white mb-1 line-clamp-2">{part.name}</h3>
-                  <p className="text-gray-700 dark:text-gray-300 text-xs mb-2 flex-grow line-clamp-2">{part.description || 'No description provided.'}</p>
-                  <div className="space-y-1 mb-3">
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Brand:</span> {part.brand || 'N/A'}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Category:</span> {part.category || 'N/A'}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Producer:</span> {part.producer?.name || 'N/A'}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Model:</span> {part.model?.name || 'N/A'}
-                    </div>
-                  </div>
-                  <div className="mt-auto">
-                    <div className="text-lg font-bold text-green-600 dark:text-green-400 mb-2">
-                      {part.price?.toFixed(2)} DH
-                    </div>
-            <Button
-                      onClick={() => handleBuyClick(part)}
-                      className="w-full bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity py-2 text-sm"
-            >
-                      Buy Now
-            </Button>
-          </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Popular Car Models Section */}
-      <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4 text-black dark:text-white">
-              {isSearchActive ? 'Matching Car Models' : 'Popular Car Models'}
-            </h3>
-            <p className="text-black dark:text-white text-lg">
-              {isSearchActive 
-                ? `Found ${filteredResults.models.length} model${filteredResults.models.length !== 1 ? 's' : ''} for "${searchQuery}"`
-                : 'Find parts for your specific vehicle'
-              }
-            </p>
-          </div>
-          
-          {(isSearchActive ? filteredResults.models : popularModels).length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-              {(isSearchActive ? filteredResults.models : popularModels).map((model) => (
-                <div 
-                  key={model._id} 
-                  onClick={() => handleModelCardClick(model)}
-                  className="bg-white dark:bg-black rounded-lg p-6 text-center hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-700"
-                >
-                  <h4 className="font-semibold mb-2 text-black dark:text-white">{model.name}</h4>
-                  <p className="text-sm text-black dark:text-white">{model.producer?.name}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              {isSearchActive ? (
-                <p className="text-black dark:text-white text-lg">No car models found for "{searchQuery}".</p>
-              ) : (
-                <p className="text-black dark:text-white text-lg">No car models available yet.</p>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* Top Producers Section */}
-      <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24">
-        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4 text-black dark:text-white">
-              {isSearchActive ? 'Matching Producers' : 'Trusted Producers'}
-            </h3>
-            <p className="text-black dark:text-white text-lg">
-              {isSearchActive 
-                ? `Found ${filteredResults.producers.length} producer${filteredResults.producers.length !== 1 ? 's' : ''} for "${searchQuery}"`
-                : 'Quality brands you can rely on'
-              }
-            </p>
-          </div>
-          
-          {(isSearchActive ? filteredResults.producers : topProducers).length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
-              {(isSearchActive ? filteredResults.producers : topProducers).map((producer) => (
-                <div key={producer._id} className="bg-white dark:bg-black rounded-lg p-6 text-center border border-gray-200 dark:border-gray-700 hover:shadow-md hover:scale-[1.02] transition-all duration-300 group">
-                  <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600">
-                    <span className="text-2xl font-bold text-black dark:text-white">
-                      {producer.name.charAt(0)}
-                    </span>
-                  </div>
-                  <h4 className="font-semibold text-sm text-black dark:text-white group-hover:text-black dark:group-hover:text-white transition-colors">{producer.name}</h4>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              {isSearchActive ? (
-                <p className="text-black dark:text-white text-lg">No producers found for "{searchQuery}".</p>
-              ) : (
-                <p className="text-black dark:text-white text-lg">No producers available yet.</p>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-black dark:bg-black text-white dark:text-white px-6 sm:px-12 lg:px-24 relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 text-center relative z-10">
-          <h3 className="text-3xl font-bold mb-4 text-white dark:text-white">Ready to Get Started?</h3>
-          <p className="text-xl mb-8 text-white dark:text-white">Join thousands of customers who trust L'Afiray.ma for their auto parts needs</p>
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
-            <Button
-              onClick={() => navigate('/register')}
-              className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
-              size="lg"
-            >
-              Create Account
-            </Button>
-            <Button
-              onClick={() => navigate('/parts-catalog')}
-              variant="outline"
-              className="bg-transparent border border-white dark:border-white text-white dark:text-white hover:bg-white hover:text-black dark:hover:bg-gray-800 dark:hover:text-white transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
-              size="lg"
-            >
-              Browse Parts
-            </Button>
-          </div>
-        </div>
-      </section>
+      {/* ChatBot */}
+      <ChatBot 
+        isOpen={showChatBot} 
+        onToggle={() => setShowChatBot(!showChatBot)} 
+      />
+      
+      {/* Fixed Mode Toggle */}
+      <div className="fixed top-20 right-4 z-50">
+        <ModeToggle />
+      </div>
 
       {/* Footer */}
       <footer className="bg-black dark:bg-black text-white dark:text-white py-8 px-6 sm:px-12 lg:px-24 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center">
-            {/* Removed the text 'L'Afiray.ma' and subtitle */}
-            
             {/* Social Media Icons */}
             <div className="flex justify-center space-x-6 mb-6">
               <a 
@@ -1029,277 +278,6 @@ const HomePage: React.FC = () => {
             </span>
           </div>
         </div>
-      </footer>
-
-      {/* Instructions Modal */}
-      {showInstructions && (
-        <div className="fixed inset-0 bg-black/50 dark:bg-white/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-sm">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-3xl font-bold text-black dark:text-white">How to Use L'Afiray.ma</h2>
-              <button 
-                onClick={() => setShowInstructions(false)}
-                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-gray-600">
-                  <span className="text-3xl font-bold text-black dark:text-white">1</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-3 text-black dark:text-white">Search & Filter</h3>
-                <p className="text-black dark:text-white text-sm leading-relaxed">
-                  Use the search bar at the top to find specific car parts by name, brand, or description. 
-                  Use the filter dropdowns to narrow down results by car producer, engine type, or car model.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-gray-600">
-                  <span className="text-3xl font-bold text-black dark:text-white">2</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-3 text-black dark:text-white">Browse Parts</h3>
-                <p className="text-black dark:text-white text-sm leading-relaxed">
-                  Explore the available auto parts displayed in cards. Each card shows the part name, 
-                  description, brand, category, price, and producer information.
-                </p>
-              </div>
-              
-              <div className="text-center">
-                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-gray-600">
-                  <span className="text-3xl font-bold text-black dark:text-white">3</span>
-                </div>
-                <h3 className="text-xl font-semibold mb-3 text-black dark:text-white">Get Started</h3>
-                <p className="text-black dark:text-white text-sm leading-relaxed">
-                  Click "Register" to create an account and start shopping, or "Become a Partner" 
-                  if you want to sell your own auto parts on the platform.
-                </p>
-              </div>
-            </div>
-            
-            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-              <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">Additional Features:</h3>
-              <ul className="space-y-2 text-black dark:text-white text-sm">
-                <li>• <strong>Dark/Light Mode:</strong> Toggle between themes using the button in the header</li>
-                <li>• <strong>Popular Models:</strong> Browse car models to find compatible parts</li>
-                <li>• <strong>Trusted Producers:</strong> View quality brands and manufacturers</li>
-                <li>• <strong>Social Media:</strong> Follow us for updates and news</li>
-              </ul>
-            </div>
-            
-            <div className="mt-6 text-center">
-              <button 
-                onClick={() => setShowInstructions(false)}
-                className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
-              >
-                Got it!
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Payment Modal */}
-      <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
-        <DialogContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 max-w-md shadow-sm">
-          <DialogHeader>
-            <DialogTitle className="text-black dark:text-white flex items-center gap-2">
-              <CreditCard className="w-5 h-5" />
-              Payment Information
-            </DialogTitle>
-            <DialogDescription className="text-black dark:text-white">
-              Complete your purchase for {selectedPart?.name}
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedPart && (
-            <Card className="bg-black dark:bg-white border border-gray-200 dark:border-gray-700">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm text-white dark:text-black">Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-white dark:text-black">Item:</span>
-                  <span className="text-white dark:text-black font-medium">{selectedPart.name}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-white dark:text-black">Brand:</span>
-                  <span className="text-white dark:text-black">{selectedPart.brand}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-white dark:text-black">Category:</span>
-                  <span className="text-white dark:text-black">{selectedPart.category}</span>
-                </div>
-                <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-600 dark:border-gray-300">
-                  <span className="text-white dark:text-black">Total:</span>
-                  <span className="text-white dark:text-black">{selectedPart.price} DH</span>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Card Number
-              </label>
-              <Input
-                type="text"
-                placeholder="1234 5678 9012 3456"
-                value={paymentData.cardNumber}
-                onChange={(e) => handlePaymentInputChange('cardNumber', e.target.value)}
-                className="bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600"
-                maxLength={19}
-              />
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                  Expiry Date
-                </label>
-                <Input
-                  type="text"
-                  placeholder="MM/YY"
-                  value={paymentData.expiryDate}
-                  onChange={(e) => handlePaymentInputChange('expiryDate', e.target.value)}
-                  className="bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600"
-                  maxLength={5}
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                  CVV
-                </label>
-                <Input
-                  type="text"
-                  placeholder="123"
-                  value={paymentData.cvv}
-                  onChange={(e) => handlePaymentInputChange('cvv', e.target.value)}
-                  className="bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600"
-                  maxLength={4}
-                />
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                Cardholder Name
-              </label>
-              <Input
-                type="text"
-                placeholder="Name and Last Name"
-                value={paymentData.cardHolder}
-                onChange={(e) => handlePaymentInputChange('cardHolder', e.target.value)}
-                className="bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600"
-              />
-            </div>
-          </div>
-
-          <DialogFooter className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowPaymentModal(false)}
-              className="border border-gray-300 dark:border-gray-600 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handlePaymentSubmit}
-              className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 flex items-center gap-2"
-            >
-              <Lock className="w-4 h-4" />
-              Pay {selectedPart?.price} DH
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Car Model Details Modal */}
-      <Dialog open={showModelDetails} onOpenChange={setShowModelDetails}>
-        <DialogContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 max-w-md shadow-sm">
-          <DialogHeader>
-            <DialogTitle className="text-black dark:text-white flex items-center gap-2">
-              <Car className="w-5 h-5" />
-              Car Model Details
-            </DialogTitle>
-            <DialogDescription className="text-black dark:text-white">
-              Information about this car model
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedModelDetails && (
-            <div className="space-y-4">
-              <Card className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-black dark:text-white">{selectedModelDetails.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-black dark:text-white">Producer:</span>
-                    <span className="text-sm text-black dark:text-white">{selectedModelDetails.producer?.name}</span>
-                  </div>
-                  {selectedModelDetails.engine && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-black dark:text-white">Engine Type:</span>
-                      <span className="text-sm text-black dark:text-white">{selectedModelDetails.engine}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-black dark:text-white">Model ID:</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 font-mono">{selectedModelDetails._id}</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <div className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                <h4 className="font-semibold text-black dark:text-white mb-2">Available Parts</h4>
-                <p className="text-sm text-black dark:text-white">
-                  This car model has compatible parts available in our catalog. 
-                  Use the search filters to find specific parts for this model.
-                </p>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setShowModelDetails(false)}
-              className="border border-gray-300 dark:border-gray-600 text-black dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              Close
-            </Button>
-            <Button
-              onClick={() => {
-                setShowModelDetails(false);
-                navigate('/parts-catalog');
-              }}
-              className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 flex items-center gap-2"
-            >
-              <Package className="w-4 h-4" />
-              Browse Parts
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* ChatBot */}
-      <ChatBot 
-        isOpen={showChatBot} 
-        onToggle={() => setShowChatBot(!showChatBot)} 
-      />
-      
-      {/* Fixed Mode Toggle */}
-      <div className="fixed top-20 right-4 z-50">
-        <ModeToggle />
-      </div>
-      {/* Footer with logo only */}
-      <footer className="w-full border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black py-8 mt-16">
-        {/* Footer content removed as the section is now empty */}
       </footer>
 
       {/* Privacy Policy Modal */}
@@ -1414,6 +392,77 @@ const HomePage: React.FC = () => {
                 className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Instructions Modal */}
+      {showInstructions && (
+        <div className="fixed inset-0 bg-black/50 dark:bg-white/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-8 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-sm">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-bold text-black dark:text-white">How to Use L'Afiray.ma</h2>
+              <button 
+                onClick={() => setShowInstructions(false)}
+                className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <div className="text-center">
+                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-gray-600">
+                  <span className="text-3xl font-bold text-black dark:text-white">1</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-3 text-black dark:text-white">Search & Find</h3>
+                <p className="text-black dark:text-white text-sm leading-relaxed">
+                  Use the search bar to find specific car parts by name, brand, or description. 
+                  Our system will help you find exactly what you need.
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-gray-600">
+                  <span className="text-3xl font-bold text-black dark:text-white">2</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-3 text-black dark:text-white">Browse Catalog</h3>
+                <p className="text-black dark:text-white text-sm leading-relaxed">
+                  Click "Browse All Parts" to explore our complete catalog of auto parts 
+                  from trusted partners across Morocco.
+                </p>
+              </div>
+              
+              <div className="text-center">
+                <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-200 dark:border-gray-600">
+                  <span className="text-3xl font-bold text-black dark:text-white">3</span>
+                </div>
+                <h3 className="text-xl font-semibold mb-3 text-black dark:text-white">Get Started</h3>
+                <p className="text-black dark:text-white text-sm leading-relaxed">
+                  Click "Register" to create an account and start shopping, or "Become a Partner" 
+                  if you want to sell your own auto parts on the platform.
+                </p>
+              </div>
+            </div>
+            
+            <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+              <h3 className="text-xl font-semibold mb-4 text-black dark:text-white">Additional Features:</h3>
+              <ul className="space-y-2 text-black dark:text-white text-sm">
+                <li>• <strong>Dark/Light Mode:</strong> Toggle between themes using the button in the top right</li>
+                <li>• <strong>Chat Support:</strong> Get help with our built-in chat assistant</li>
+                <li>• <strong>Social Media:</strong> Follow us for updates and news</li>
+                <li>• <strong>Account Dashboard:</strong> Access your personalized dashboard after login</li>
+              </ul>
+            </div>
+            
+            <div className="mt-6 text-center">
+              <button 
+                onClick={() => setShowInstructions(false)}
+                className="bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-lg hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
+              >
+                Got it!
               </button>
             </div>
           </div>
