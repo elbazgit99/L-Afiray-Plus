@@ -491,7 +491,6 @@ const HomePage: React.FC = () => {
       'CoolingSystem.png',
       'ExhustSystem.png',
       'SealingRings.png',
-      'motoroil.png',
       'Accessories.png',
       'Connections.png',
       'RepairSet.png',
