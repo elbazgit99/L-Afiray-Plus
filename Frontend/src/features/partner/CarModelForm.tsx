@@ -94,7 +94,7 @@ const CarModelForm: React.FC<CarModelFormProps> = ({
           <Input
             type="text"
             id="car-model-name"
-            placeholder="e.g., Golf, A4, Cybertruck"
+            placeholder="Golf, A4, Cybertruck"
             value={newCarModelName}
             onChange={(e) => setNewCarModelName(e.target.value)}
             className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"

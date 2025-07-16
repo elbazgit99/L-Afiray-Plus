@@ -61,14 +61,8 @@ const PartnerProfilePage: React.FC = () => {
     fileInputRef.current?.click();
   };
 
-  const handleSalesHistory = () => {
-    console.log('Sales History button clicked');
-    console.log('Navigating to /partner-sales-history');
-    navigate('/partner-sales-history');
-  };
-
   if (!user || user.role !== 'PARTNER') {
-    return <div className="text-center text-red-500 dark:text-red-400">Please log in as a Partner to view this page.</div>;
+    return <div className="text-center text-black dark:text-white">Please log in as a Partner to view this page.</div>;
   }
 
   return (
@@ -118,7 +112,8 @@ const PartnerProfilePage: React.FC = () => {
                 )}
               </Button>
             </div>
-            
+            {/* Add extra space between image and status badge */}
+            <div className="h-6" />
             {/* Status Badge */}
             <div className="flex justify-center mb-10">
               {user.isApproved ? (
@@ -164,7 +159,7 @@ const PartnerProfilePage: React.FC = () => {
               <strong>Role:</strong> {user.role}
             </div>
             <div className="text-base text-black dark:text-white">
-              <strong>Member Since:</strong> {new Date(user.createdAt || Date.now()).toLocaleDateString()}
+              <strong>Member Since:</strong> {new Date(user?.createdAt || Date.now()).toLocaleDateString()}
             </div>
             <div className="text-base text-black dark:text-white">
               <strong>Account Status:</strong> {user.isApproved ? 'Active' : 'Pending Review'}
@@ -204,16 +199,7 @@ const PartnerProfilePage: React.FC = () => {
           )}
 
           {/* Action Buttons */}
-          <div className="flex justify-center gap-3">
-            <Button
-              onClick={handleSalesHistory}
-              className="bg-black text-white dark:bg-white dark:text-black hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors"
-              size="sm"
-            >
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Sales History
-            </Button>
-          </div>
+          {/* Removed Sales History button */}
         </CardContent>
       </Card>
     </div>

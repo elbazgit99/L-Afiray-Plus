@@ -133,18 +133,6 @@ const HoverSidebar: React.FC<HoverSidebarProps> = ({ userRole }) => {
                   <span>Car Management</span>
                 </Link>
                 <Link
-                  to="/partner-dashboard/orders"
-                  className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
-                    location.pathname.includes('/orders') 
-                      ? 'bg-black dark:bg-white text-white dark:text-black' 
-                      : 'text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                  onClick={() => setIsOpen(false)}
-                >
-                  <Package className="h-4 w-4" />
-                  <span>Track Orders</span>
-                </Link>
-                <Link
                   to="/partner-dashboard/sales-reports"
                   className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                     location.pathname.includes('/sales-reports') 
@@ -154,7 +142,7 @@ const HoverSidebar: React.FC<HoverSidebarProps> = ({ userRole }) => {
                   onClick={() => setIsOpen(false)}
                 >
                   <BarChart3 className="h-4 w-4" />
-                  <span>Sales Reports</span>
+                  <span>Sales History</span>
                 </Link>
                 <Link
                   to="/partner-dashboard/profile"

@@ -17,7 +17,7 @@ const PartnerDashboardLayout: React.FC = () => {
         <div className="w-full max-w-6xl px-8 py-8">
           <header className="mb-8 pb-4 border-b border-border">
             <div>
-              <h1 className="text-3xl font-bold text-black dark:text-white">Welcome, {user?.name} (Partner)</h1>
+              {/* Removed welcome message */}
             </div>
           </header>
           <Outlet />

@@ -28,7 +28,14 @@ const storage = multer.diskStorage({
     if (file.fieldname === 'profileImage') {
       prefix = 'profile';
     } else if (file.fieldname === 'imageFile') {
-      prefix = 'carpart';
+      // Check if this is for a producer or car part based on the URL path
+      if (req.originalUrl && req.originalUrl.includes('/producers')) {
+        prefix = 'producer';
+      } else {
+        prefix = 'carpart';
+      }
+    } else if (file.fieldname === 'producerImage') {
+      prefix = 'producer';
     }
     
     const filename = `${prefix}-${uniqueSuffix}${fileExtension}`;

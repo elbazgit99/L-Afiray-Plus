@@ -25,6 +25,30 @@ interface CarPart {
 
 const API_BASE_URL = 'http://localhost:5000/api'; // Ensure this matches your backend server's address
 
+// Helper to get image path for a part type
+const getPartImage = (type: string) => {
+  // Convert type to match filename (e.g., 'Cooling System' -> 'Cooling.System.png')
+  const fileName = type.replace(/ /g, '.').replace(/\s+/g, '').replace(/\./g, '.') + '.png';
+  try {
+    // Use relative import for Vite/CRA static assets
+    return new URL(`../../assets/parts/${fileName}`, import.meta.url).href;
+  } catch {
+    return 'https://placehold.co/80x80/E0E0E0/333333?text=No+Image';
+  }
+};
+
+// Get all part types from assets/parts
+const partTypeOptions = [
+  'Tires',
+  'Brakes',
+  'Filters',
+  'Electrics',
+  'Depreciations',
+  'Cooling System',
+  'Exhust System',
+  'Sealing Rings',
+];
+
 const CarPartsCatalogPage: React.FC = () => {
   const [carParts, setCarParts] = useState<CarPart[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -32,19 +56,23 @@ const CarPartsCatalogPage: React.FC = () => {
 
   // Filter states
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedPart, setSelectedPart] = useState<string>('all');
   const [selectedProducer, setSelectedProducer] = useState<string>('all');
   const [selectedBrand, setSelectedBrand] = useState<string>('all');
-  const [priceRange, setPriceRange] = useState<string>('all');
   const [showFilters, setShowFilters] = useState<boolean>(false);
 
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user, isPartner } = useAuth();
 
   // Get unique values for filters
-  const uniqueCategories = Array.from(new Set(carParts.map(part => part.category).filter(Boolean)));
+  const uniqueParts = Array.from(new Set(carParts.map(part => part.category).filter(Boolean)));
   const uniqueProducers = Array.from(new Set(carParts.map(part => part.producer?.name).filter(Boolean)));
   const uniqueBrands = Array.from(new Set(carParts.map(part => part.brand).filter(Boolean)));
+
+  // Get available brands for each part type from carParts
+  const getBrandsForType = (type: string) => {
+    return Array.from(new Set(carParts.filter((p: CarPart) => p.category === type && p.brand).map((p: CarPart) => p.brand)));
+  };
 
   // Filtered parts based on selected filters
   const filteredParts = carParts.filter(part => {
@@ -56,55 +84,44 @@ const CarPartsCatalogPage: React.FC = () => {
       part.producer?.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       part.model?.name.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const categoryMatch = selectedCategory === 'all' || part.category === selectedCategory;
+    const partMatch = selectedPart === 'all' || part.category === selectedPart;
     const producerMatch = selectedProducer === 'all' || part.producer?.name === selectedProducer;
     const brandMatch = selectedBrand === 'all' || part.brand === selectedBrand;
 
-    let priceMatch = true;
-    if (priceRange !== 'all') {
-      const price = part.price;
-      switch (priceRange) {
-        case '0-100':
-          priceMatch = price >= 0 && price <= 100;
-          break;
-        case '100-500':
-          priceMatch = price > 100 && price <= 500;
-          break;
-        case '500-1000':
-          priceMatch = price > 500 && price <= 1000;
-          break;
-        case '1000+':
-          priceMatch = price > 1000;
-          break;
-      }
-    }
-
-    return searchMatch && categoryMatch && producerMatch && brandMatch && priceMatch;
+    return searchMatch && partMatch && producerMatch && brandMatch;
   });
 
   // Clear all filters
   const clearFilters = () => {
     setSearchQuery('');
-    setSelectedCategory('all');
+    setSelectedPart('all');
     setSelectedProducer('all');
     setSelectedBrand('all');
-    setPriceRange('all');
   };
 
   // Check if any filters are active
   const hasActiveFilters = searchQuery || 
-    selectedCategory !== 'all' || 
+    selectedPart !== 'all' || 
     selectedProducer !== 'all' || 
-    selectedBrand !== 'all' || 
-    priceRange !== 'all';
+    selectedBrand !== 'all';
 
+  // Fetch car parts with filters (category and producer for partners)
   useEffect(() => {
     const fetchCarParts = async () => {
       setLoading(true);
       setError(null);
       try {
-        // This endpoint is now public, so no auth header is strictly needed for GET
-        const response = await axios.get<CarPart[]>(`${API_BASE_URL}/carparts`);
+        let url = `${API_BASE_URL}/carparts`;
+        const params: Record<string, string> = {};
+        if (selectedPart !== 'all') {
+          params.category = selectedPart;
+        }
+        // If user is a partner, filter by their producer ID
+        if (isPartner && user?._id) {
+          params.producer = user._id;
+        }
+        const queryString = Object.keys(params).length > 0 ? `?${new URLSearchParams(params).toString()}` : '';
+        const response = await axios.get<CarPart[]>(`${url}${queryString}`);
         setCarParts(response.data);
       } catch (err: any) {
         console.error("Failed to fetch car parts:", err);
@@ -114,9 +131,8 @@ const CarPartsCatalogPage: React.FC = () => {
         setLoading(false);
       }
     };
-
     fetchCarParts();
-  }, []);
+  }, [selectedPart, isPartner, user]);
 
   const handleBuyClick = (partName: string) => {
     if (!isAuthenticated) {
@@ -141,7 +157,7 @@ const CarPartsCatalogPage: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-red-500 dark:text-red-400">
+      <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white">
         <p>Error: {error}</p>
       </div>
     );
@@ -160,6 +176,34 @@ const CarPartsCatalogPage: React.FC = () => {
 
   return (
     <div className="p-6 bg-white dark:bg-black rounded-lg shadow-md border border-gray-200 dark:border-gray-700 text-black dark:text-white">
+      {/* Part Type Cards */}
+      <div className="flex flex-wrap gap-4 mb-8 justify-center">
+        {partTypeOptions.map((type) => (
+          <div
+            key={type}
+            className={`group relative flex flex-col items-center cursor-pointer border border-black dark:border-white rounded-xl p-4 bg-white dark:bg-black shadow-sm hover:shadow-lg transition-all w-32 h-40 ${selectedPart === type ? 'ring-2 ring-black dark:ring-white' : ''}`}
+            onClick={() => setSelectedPart(type)}
+          >
+            <img
+              src={getPartImage(type)}
+              alt={type}
+              className="w-16 h-16 object-contain mb-2"
+            />
+            <span className="font-semibold text-black dark:text-white text-center text-sm">{type}</span>
+            {/* Hover overlay for brands */}
+            <div className="absolute left-0 right-0 top-0 bottom-0 bg-black bg-opacity-80 text-white rounded-xl flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10 p-2">
+              <span className="font-bold mb-2">Available Brands</span>
+              {getBrandsForType(type).length > 0 ? (
+                getBrandsForType(type).map((brand) => (
+                  <span key={String(brand)} className="text-xs mb-1">{brand}</span>
+                ))
+              ) : (
+                <span className="text-xs">No brands</span>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
       <div className="mb-4 flex justify-start sticky top-0 z-20 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-700 py-2" style={{ borderTopLeftRadius: '0.75rem', borderTopRightRadius: '0.75rem' }}>
         <Button
           onClick={() => navigate('/')}
@@ -201,7 +245,7 @@ const CarPartsCatalogPage: React.FC = () => {
             <Button
               onClick={clearFilters}
               variant="outline"
-              className="bg-transparent border border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+              className="bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             >
               <X className="w-4 h-4 mr-2" />
               Clear Filters
@@ -213,27 +257,27 @@ const CarPartsCatalogPage: React.FC = () => {
         <div className="text-sm text-gray-600 dark:text-gray-400">
           Showing {filteredParts.length} of {carParts.length} parts
           {hasActiveFilters && (
-            <span className="ml-2 text-blue-600 dark:text-blue-400">
-              (filtered)
-            </span>
+                      <span className="ml-2 text-black dark:text-white">
+            (filtered)
+          </span>
           )}
         </div>
 
         {/* Filter Options */}
         {showFilters && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4 bg-gray-50 dark:bg-zinc-800 rounded-lg border border-gray-200 dark:border-gray-700">
-            {/* Category Filter */}
+            {/* Parts Filter */}
             <div>
-              <label className="block text-sm font-medium mb-2 text-black dark:text-white">Category</label>
-              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <label className="block text-sm font-medium mb-2 text-black dark:text-white">Parts</label>
+              <Select value={selectedPart} onValueChange={setSelectedPart}>
                 <SelectTrigger className="bg-white dark:bg-zinc-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white">
-                  <SelectValue placeholder="All Categories" />
+                  <SelectValue placeholder="All Parts" />
                 </SelectTrigger>
                 <SelectContent className="bg-white dark:bg-zinc-800 text-black dark:text-white border border-gray-300 dark:border-gray-600">
-                  <SelectItem value="all">All Categories</SelectItem>
-                  {uniqueCategories.map((category) => (
-                    <SelectItem key={category} value={category}>
-                      {category}
+                  <SelectItem value="all">All Parts</SelectItem>
+                  {uniqueParts.map((part) => (
+                    <SelectItem key={part} value={part}>
+                      {part}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -275,28 +319,20 @@ const CarPartsCatalogPage: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Price Range Filter */}
-            <div>
-              <label className="block text-sm font-medium mb-2 text-black dark:text-white">Price Range</label>
-              <Select value={priceRange} onValueChange={setPriceRange}>
-                <SelectTrigger className="bg-white dark:bg-zinc-700 border border-gray-300 dark:border-gray-600 text-black dark:text-white">
-                  <SelectValue placeholder="All Prices" />
-                </SelectTrigger>
-                <SelectContent className="bg-white dark:bg-zinc-800 text-black dark:text-white border border-gray-300 dark:border-gray-600">
-                  <SelectItem value="all">All Prices</SelectItem>
-                  <SelectItem value="0-100">0 - 100 DH</SelectItem>
-                  <SelectItem value="100-500">100 - 500 DH</SelectItem>
-                  <SelectItem value="500-1000">500 - 1000 DH</SelectItem>
-                  <SelectItem value="1000+">1000+ DH</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
         )}
       </div>
 
       {/* Results */}
+      <div className="mb-4 flex justify-start">
+        <Button
+          onClick={() => navigate(-1)}
+          className="bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          variant="outline"
+        >
+          ← Back
+        </Button>
+      </div>
       {filteredParts.length === 0 ? (
         <div className="text-center py-12">
           <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">No parts found matching your filters.</p>
@@ -326,7 +362,7 @@ const CarPartsCatalogPage: React.FC = () => {
                     <span className="font-medium">Brand:</span> {part.brand || 'N/A'}
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">
-                    <span className="font-medium">Category:</span> {part.category || 'N/A'}
+                    <span className="font-medium">Part:</span> {part.category || 'N/A'}
                   </div>
                   <div className="text-xs text-gray-600 dark:text-gray-400">
                     <span className="font-medium">Producer:</span> {part.producer?.name || 'N/A'}
@@ -336,7 +372,7 @@ const CarPartsCatalogPage: React.FC = () => {
                   </div>
                 </div>
                 <div className="mt-auto">
-                  <div className="text-lg font-bold text-green-600 dark:text-green-400 mb-2">
+                  <div className="text-lg font-bold text-black dark:text-white mb-2">
                     {part.price?.toFixed(2)} DH
                   </div>
                   <Button

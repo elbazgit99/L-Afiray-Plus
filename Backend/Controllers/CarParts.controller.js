@@ -18,9 +18,17 @@ const deleteImageFile = (filename) => {
 // Get all car parts
 export const getAllCarParts = async (req, res) => {    
     try {
-        const carParts = await CarPart.find()
-            .populate('model', 'name engine')
-            .populate('producer', 'name');
+        // Build filter object from query params
+        const filter = {};
+        if (req.query.category) {
+            filter.category = req.query.category;
+        }
+        if (req.query.producer) {
+            filter.producer = req.query.producer;
+        }
+        const carParts = await CarPart.find(filter)
+            .populate('model')
+            .populate('producer');
         
         console.log('Fetched car parts:', carParts.length);
         if (carParts.length > 0) {
@@ -217,7 +225,7 @@ export const getCarPartsByProducer = async (req, res) => {
             return res.status(400).json({ error: 'Invalid producer ID' });
         }
 
-        const carParts = await CarPart.find({ producer: producerId }).populate('carModel').populate('producer');
+        const carParts = await CarPart.find({ producer: producerId }).populate('model').populate('producer');
         if (carParts.length === 0) return res.status(404).json({ error: 'No car parts found for this producer' });
 
         res.json(carParts);
@@ -230,8 +238,8 @@ export const getCarPartsByProducer = async (req, res) => {
 export const getFeaturedCarParts = async (req, res) => {    
     try {
         const featuredParts = await CarPart.find({ isFeatured: true })
-            .populate('model', 'name engine')
-            .populate('producer', 'name');
+            .populate('model')
+            .populate('producer');
         
         console.log('Fetched featured car parts:', featuredParts.length);
         res.json(featuredParts);

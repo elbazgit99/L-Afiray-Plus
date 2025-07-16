@@ -12,6 +12,8 @@ import userRoutes from "./Routes/User.route.js";
 import rolesRoutes from "./Routes/Roles.route.js";
 import chatRoutes from "./Routes/Chat.route.js";
 import moderationRoutes from "./Routes/Moderation.route.js";
+import brandRoutes from "./Routes/Brand.route.js";
+import saleRoutes from "./Routes/Sale.route.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,6 +47,8 @@ app.use("/api/models", CarModelRouter);
 app.use("/api/carparts", CarPartsRouter);
 app.use("/api/chat", chatRoutes);
 app.use("/api/moderation", moderationRoutes);
+app.use("/api/brands", brandRoutes);
+app.use("/api/sales", saleRoutes);
 
 // Connect to DB and start server
 try {

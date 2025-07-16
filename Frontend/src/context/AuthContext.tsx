@@ -13,6 +13,8 @@ interface User {
   companyName?: string;
   companyAddress?: string;
   phone?: string;
+  profileImage?: string;
+  createdAt?: string;
 }
 
 interface AuthContextType {

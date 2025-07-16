@@ -14,6 +14,9 @@ import ApprovalPendingBanner from '@/components/ApprovalPendingBanner';
 interface Producer {
   _id: string;
   name: string;
+  imageUrl?: string;
+  imageFilename?: string;
+  createdBy?: string;
 }
 
 interface CarModel {
@@ -35,6 +38,15 @@ interface CarPart {
   producer: string;
   model: string;
   isFeatured?: boolean; // Added isFeatured field
+}
+
+// Brand interface
+interface Brand {
+  _id: string;
+  name: string;
+  imageUrl?: string;
+  imageFilename?: string;
+  createdBy?: string;
 }
 
 // Base URL for backend API
@@ -65,6 +77,12 @@ const PartnerListingsPage: React.FC = () => {
     imageFile: null as File | null,
     imagePreview: '',
   });
+
+  // State for brands
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [newBrandName, setNewBrandName] = useState('');
+  const [newBrandImage, setNewBrandImage] = useState<File | null>(null);
+  const [brandImagePreview, setBrandImagePreview] = useState<string | null>(null);
 
   // Prefill edit form when editingPart changes
   React.useEffect(() => {
@@ -233,17 +251,80 @@ const PartnerListingsPage: React.FC = () => {
     }
   }, [selectedProducerIdForPart, carModels]);
 
+  // Fetch brands
+  const getBrands = useCallback(async () => {
+    try {
+      const response = await authAxios.get<Brand[]>('/brands');
+      setBrands(response.data);
+    } catch (error) {
+      notify('Error', 'Failed to fetch brands', 'destructive');
+    }
+  }, [authAxios]);
+
+  useEffect(() => {
+    getBrands();
+  }, [getBrands]);
+
+  // Handle brand image upload
+  const handleBrandImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setNewBrandImage(file);
+      setBrandImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  // Add new brand
+  const addBrand = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBrandName.trim() || !newBrandImage) {
+      notify('Input Error', 'Please provide a brand name and image.', 'destructive');
+      return;
+    }
+    const formData = new FormData();
+    formData.append('name', newBrandName.trim());
+    formData.append('imageFile', newBrandImage);
+    try {
+      await authAxios.post('/brands', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      notify('Success!', 'Brand added successfully!');
+      setNewBrandName('');
+      setNewBrandImage(null);
+      setBrandImagePreview(null);
+      getBrands();
+    } catch (error: any) {
+      notify('Error', error.response?.data?.error || error.message, 'destructive');
+    }
+  };
+
 
   // --- CRUD Handlers (Memoized with useCallback) ---
 
-  const addProducer = useCallback(async (name: string) => {
-    if (name.trim() === '') {
+  const addProducer = useCallback(async (producerData: { name: string; imageFile: File | null }) => {
+    if (producerData.name.trim() === '') {
       notify('Input Error', 'Producer name cannot be empty!', 'destructive');
       return;
     }
     setLoading(true);
     try {
-      const response = await authAxios.post<Producer>('/producers', { name: name.trim() });
+      let response;
+      if (producerData.imageFile) {
+        // Create FormData for file upload
+        const formData = new FormData();
+        formData.append('name', producerData.name.trim());
+        formData.append('imageFile', producerData.imageFile);
+        
+        response = await authAxios.post<Producer>('/producers', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+      } else {
+        // No image, send JSON data
+        response = await authAxios.post<Producer>('/producers', { name: producerData.name.trim() });
+      }
+      
       notify('Success!', `Producer "${response.data.name}" added successfully!`);
       getProducers();
     } catch (error: any) {
@@ -384,6 +465,28 @@ const PartnerListingsPage: React.FC = () => {
     );
   }
 
+  // Compute part names from assets/parts image filenames
+  const partImageFilenames = [
+    'motor.oil.png',
+    'Accessories.png',
+    'Connections.png',
+    'RepairSet.png',
+    'Illuminated.png',
+    'Bearings.png',
+    'AIRsystem.png',
+    'Gearbox.png',
+    'Planetry.joint.png',
+    'Exhust.System.png',
+    'Sealing.Rings.png',
+    'Cooling.System.png',
+    'Depreciations.png',
+    'Electrics.png',
+    'Filters.png',
+    'Brakes.png',
+    'Tires.png',
+  ];
+  const existingPartNames = partImageFilenames.map(f => f.replace(/\.[^.]+$/, ''));
+
   return (
     <div className="container mx-auto max-w-4xl bg-white dark:bg-black p-6 sm:p-10 rounded-3xl shadow-2xl space-y-8 border border-gray-200 dark:border-gray-700 transform transition-all duration-300 hover:shadow-3xl">
       <h1 className="text-4xl sm:text-5xl font-extrabold text-center mb-8 leading-tight tracking-tight">
@@ -391,7 +494,7 @@ const PartnerListingsPage: React.FC = () => {
       </h1>
 
       {loading && (
-        <div className="flex items-center justify-center text-blue-600 text-lg font-medium space-x-2 animate-pulse">
+        <div className="flex items-center justify-center text-black dark:text-white text-lg font-medium space-x-2 animate-pulse">
           <span>Loading... Please wait.</span>
         </div>
       )}
@@ -415,20 +518,22 @@ const PartnerListingsPage: React.FC = () => {
         setSelectedProducerIdForPart={setSelectedProducerIdForPart}
         selectedModelIdForPart={selectedModelIdForPart}
         setSelectedModelIdForPart={setSelectedModelIdForPart}
+        existingPartNames={existingPartNames}
       />
 
       {/* Available Car Parts Section */}
       <section className="mt-8">
         <h2 className="text-2xl font-bold mb-4 text-black dark:text-white">Available Car Parts</h2>
         {(() => {
-          // Find all producer IDs that belong to the current partner (by name match)
+          // Find all producer IDs that belong to the current partner (by createdBy)
           const myProducerIds = producers
-            .filter(p => p.name.trim().toLowerCase() === (user?.name || '').trim().toLowerCase())
+            .filter(p => p.createdBy === user?._id)
             .map(p => p._id);
           // Filter car parts by those producer IDs
-          const myCarParts = carParts.filter(part => myProducerIds.includes(
-            typeof part.producer === 'string' ? part.producer : (part.producer?._id || '')
-          ));
+          const myCarParts = carParts.filter(part => {
+            const producerId = typeof part.producer === 'string' ? part.producer : (part.producer as any)?._id || '';
+            return myProducerIds.includes(producerId);
+          });
           return myCarParts.length === 0 ? (
             <div className="text-gray-500 dark:text-gray-400 italic">No car parts available yet.<br/>Partners will add parts here once they create them.</div>
           ) : (

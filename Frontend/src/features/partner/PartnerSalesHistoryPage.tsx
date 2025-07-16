@@ -290,7 +290,7 @@ const PartnerSalesHistoryPage: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600 dark:text-gray-400">Growth Rate</span>
-                  <span className="font-semibold text-green-600">
+                  <span className="font-semibold text-black dark:text-white">
                     +{Math.floor(Math.random() * 25) + 5}%
                   </span>
                 </div>

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '../../components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { useAuth } from '../../context/AuthContext';
@@ -30,6 +29,8 @@ interface CarPart {
   model: { _id: string; name: string; engine?: string; };
   createdAt?: string;
   updatedAt?: string;
+  brandImageUrl?: string; // Added for brand image
+  brandImageFilename?: string; // Added for brand image
 }
 
 interface CarModel {
@@ -42,6 +43,15 @@ interface CarModel {
 interface Producer {
   _id: string;
   name: string;
+  imageUrl?: string;
+  imageFilename?: string;
+}
+
+interface Brand {
+  _id: string;
+  name: string;
+  imageUrl?: string;
+  imageFilename?: string;
 }
 
 const API_BASE_URL = 'http://localhost:5000/api';
@@ -92,6 +102,9 @@ const HomePage: React.FC = () => {
   const [showPrivacyPolicy, setShowPrivacyPolicy] = useState(false);
   const [showTermsModal, setShowTermsModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
+
+  // State for brands
+  const [brands, setBrands] = useState<Brand[]>([]);
 
   // Get unique values for filters
   const uniqueProducers = Array.from(new Set(featuredParts.map(part => part.producer?.name).filter(Boolean)));
@@ -253,7 +266,7 @@ const HomePage: React.FC = () => {
       try {
         const producersResponse = await axios.get<Producer[]>(`${API_BASE_URL}/producers`);
         console.log('Producers response:', producersResponse.data);
-        setTopProducers(producersResponse.data.slice(0, 6));
+        setTopProducers(producersResponse.data.filter(p => p.name && p.name.trim().toLowerCase() !== 'dacia').slice(0, 6));
       } catch (error) {
         console.log('Producers endpoint not available, using empty array');
         setTopProducers([]);
@@ -288,6 +301,12 @@ const HomePage: React.FC = () => {
     }
   }, [featuredParts]);
 
+  // Fetch brands on mount
+  useEffect(() => {
+    axios.get(`${API_BASE_URL}/brands`).then(res => {
+      setBrands(res.data);
+    }).catch(() => setBrands([]));
+  }, []);
 
 
   const handleDashboardRedirect = () => {
@@ -325,13 +344,25 @@ const HomePage: React.FC = () => {
     }
 
     try {
-      // Here you would typically send the payment data to your backend
-      // For now, we'll simulate a successful payment
+      // Simulate payment success
       toast.success('Payment Successful!', {
         description: `Your order for ${selectedPart.name} has been processed successfully.`,
         duration: 5000
       });
-      
+
+      // Record the sale in backend
+      try {
+        await axios.post('http://localhost:5000/api/sales', {
+          partId: selectedPart._id,
+          buyerId: user?._id,
+          partnerId: selectedPart.producer?._id,
+          price: selectedPart.price
+        });
+      } catch (saleError) {
+        console.error('Failed to record sale:', saleError);
+        toast.error('Sale not recorded', { description: 'Could not record sale in backend.' });
+      }
+
       setShowPaymentModal(false);
       setSelectedPart(null);
       setPaymentData({
@@ -436,6 +467,66 @@ const HomePage: React.FC = () => {
     setShowModelDetails(true);
   };
 
+  // Helper to get image path for a part type
+  const getPartImage = (type: string) => {
+    // Remove all spaces and dots
+    const normalized = type.replace(/[. ]/g, '');
+    const fileName = `${normalized}.png`;
+    try {
+      return new URL(`../../assets/parts/${fileName}`, import.meta.url).href;
+    } catch {
+      return 'https://placehold.co/80x80/E0E0E0/333333?text=No+Image';
+    }
+  };
+  // Remove the hardcoded partTypeOptions array
+  // Dynamically generate partTypeOptions from assets/parts images
+  function getPartTypesFromAssets() {
+    // List of filenames from assets/parts (update this if new images are added)
+    const filenames = [
+      'Tires.png',
+      'Brakes.png',
+      'Filters.png',
+      'Electrics.png',
+      'Depreciations.png',
+      'CoolingSystem.png',
+      'ExhustSystem.png',
+      'SealingRings.png',
+      'motoroil.png',
+      'Accessories.png',
+      'Connections.png',
+      'RepairSet.png',
+      'Illuminated.png',
+      'Bearings.png',
+      'AIRsystem.png',
+      'Gearbox.png',
+      'Planetryjoint.png',
+    ];
+    // Convert filenames to display names (remove extension, remove dots, split camel case, capitalize)
+    return filenames.map(f => {
+      const name = f.replace(/\.[^.]+$/, '')
+        .replace(/([a-z])([A-Z])/g, '$1 $2') // split camel case
+        .replace(/([A-Z]+)/g, ' $1') // split consecutive capitals
+        .replace(/\s+/g, ' ') // collapse spaces
+        .replace(/^\s+|\s+$/g, '');
+      return name.charAt(0).toUpperCase() + name.slice(1);
+    });
+  }
+  const partTypeOptions = getPartTypesFromAssets();
+
+  const [selectedType, setSelectedType] = useState<string>('all');
+  const getBrandsForType = (type: string) => {
+    return Array.from(new Set(categoriesData.filter((p: CarPart) => p.category === type && p.brand).map((p: CarPart) => p.brand)));
+  };
+  const filteredTopSales = selectedType === 'all' ? categoriesData.slice(0, 8) : categoriesData.filter((p) => p.category === selectedType).slice(0, 8);
+
+  // Add a filteredPartsByType variable for the selected part type
+  const filteredPartsByType = selectedType === 'all'
+    ? categoriesData
+    : categoriesData.filter((part) => {
+        // Normalize both category and selectedType for comparison
+        const normalize = (str: string) => str.replace(/[.]/g, ' ').trim().toLowerCase();
+        return normalize(part.category) === normalize(selectedType);
+      });
 
 
   // Debug logging before render
@@ -475,9 +566,10 @@ const HomePage: React.FC = () => {
               </span>
               {/* Removed the text 'L'Afiray.ma' and subtitle */}
             </div>
-            <div className="flex items-center space-x-6">
+            {/* NAV BUTTONS + MODE TOGGLE */}
+            <div className="flex items-center space-x-3">
               {isAuthenticated ? (
-                <div className="flex items-center space-x-3">
+                <>
                   <span className="text-sm text-gray-600 dark:text-gray-400">Welcome, {user?.name}</span>
                   <Button
                     onClick={handleDashboardRedirect}
@@ -494,9 +586,9 @@ const HomePage: React.FC = () => {
                   >
                     Logout
                   </Button>
-                </div>
+                </>
               ) : (
-                <div className="flex items-center space-x-3">
+                <>
                   <Button
                     onClick={() => navigate('/login')}
                     className="bg-black text-white dark:bg-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors"
@@ -512,18 +604,22 @@ const HomePage: React.FC = () => {
                   >
                     Register
                   </Button>
-                </div>
+                </>
               )}
+              {/* Mode Toggle in Nav */}
+              <div className="ml-2">
+                <ModeToggle />
+              </div>
             </div>
           </div>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="bg-black dark:bg-black text-white dark:text-white py-16 px-6 sm:px-12 lg:px-24 relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
+      <section className="bg-purple-100 dark:bg-black text-black dark:text-white py-16 px-6 sm:px-12 lg:px-24 relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-white dark:text-white">Find Your Perfect Auto Parts</h2>
-          <p className="text-xl md:text-2xl mb-8 text-white dark:text-white">Quality parts from trusted partners across Morocco</p>
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 text-black dark:text-white">Find Your Perfect Auto Parts</h2>
+          <p className="text-xl md:text-2xl mb-8 text-black dark:text-white">Quality parts from trusted partners across Morocco</p>
           
           {/* Search Bar */}
           <div className="max-w-4xl mx-auto mt-12 mb-8 relative">
@@ -545,105 +641,11 @@ const HomePage: React.FC = () => {
                 type="button" 
                 onClick={handleSearch} 
                 variant="outline"
-                className="bg-transparent border border-white dark:border-white text-white dark:text-white hover:bg-white hover:text-black dark:hover:bg-gray-800 dark:hover:text-white transition-colors font-semibold text-lg px-8 py-3 rounded-lg shadow-sm"
+                className="bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-gray-800 dark:hover:text-white transition-colors font-semibold text-lg px-8 py-3 rounded-lg shadow-sm"
               >
                 <Search className="w-5 h-5 mr-2" />
                 Search
               </Button>
-            </div>
-
-            {/* Filter Section - Always Visible */}
-            <div className="bg-white dark:bg-black rounded-lg shadow-sm border border-gray-200 dark:border-gray-800 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-semibold text-black dark:text-white flex items-center gap-2">
-                  <Filter className="w-5 h-5" />
-                  Filter Parts
-                </h4>
-                {hasActiveFilters && (
-                  <Button
-                    onClick={clearFilters}
-                    variant="ghost"
-                    size="sm"
-                    className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Clear All
-                  </Button>
-                )}
-              </div>
-              
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
-                {/* Producer Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                    Car Producer
-                  </label>
-                  <Select value={selectedProducer} onValueChange={handleProducerChange}>
-                    <SelectTrigger className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                      <SelectValue placeholder="Select producer" className="text-black dark:text-white !text-black dark:!text-white" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
-                      <SelectItem value="all" className="text-black dark:text-white">All Producers</SelectItem>
-                      {uniqueProducers.map((producer) => (
-                        <SelectItem key={producer} value={producer} className="text-black dark:text-white">
-                          {producer}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Engine Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                    Engine Type
-                  </label>
-                  <Select value={selectedEngine} onValueChange={setSelectedEngine}>
-                    <SelectTrigger className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                      <SelectValue placeholder="Select engine" className="text-black dark:text-white !text-black dark:!text-white" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
-                      <SelectItem value="all" className="text-black dark:text-white">All Engines</SelectItem>
-                      {uniqueEngines.map((engine) => (
-                        <SelectItem key={engine} value={engine} className="text-black dark:text-white">
-                          {engine}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Car Model Filter */}
-                <div>
-                  <label className="block text-sm font-medium text-black dark:text-white mb-2">
-                    Car Model
-                    {selectedProducer !== 'all' && selectedProducer && (
-                      <span className="ml-1 text-xs text-gray-500 dark:text-gray-400">
-                        ({availableModels.length} available)
-                      </span>
-                    )}
-                  </label>
-                  <Select value={selectedModel} onValueChange={setSelectedModel}>
-                    <SelectTrigger className="w-full bg-white dark:bg-black text-black dark:text-white border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
-                      <SelectValue placeholder="Select model" className="text-black dark:text-white !text-black dark:!text-white" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700">
-                      <SelectItem value="all" className="text-black dark:text-white">All Models</SelectItem>
-                      {availableModels.length > 0 ? (
-                        availableModels.map((model) => (
-                          <SelectItem key={model} value={model} className="text-black dark:text-white">
-                            {model}
-                          </SelectItem>
-                        ))
-                      ) : selectedProducer !== 'all' && selectedProducer ? (
-                        <SelectItem value="no-models" disabled className="text-gray-400 dark:text-gray-500">
-                          No models available for {selectedProducer}
-                        </SelectItem>
-                      ) : null}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
             </div>
             {/* Suggestions Dropdown */}
             {showSuggestions && (
@@ -734,145 +736,76 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Available Car Parts Section */}
-      <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24">
-        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4 text-black dark:text-white">
-              {isSearchActive ? 'Search Results' : hasActiveFilters ? 'Filtered Car Parts' : 'Available Car Parts'}
-            </h3>
-            <p className="text-black dark:text-white text-lg">
-              {isSearchActive 
-                ? `Found ${filteredResults.parts.length} part${filteredResults.parts.length !== 1 ? 's' : ''} for "${searchQuery}"`
-                : hasActiveFilters 
-                  ? `Showing ${filteredParts.length} of ${featuredParts.length} parts`
-                  : 'Browse auto parts created by our trusted partners'}
-            </p>
-            {isSearchActive && (
-              <Button
-                onClick={clearSearch}
-                variant="outline"
-                className="mt-4 bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-              >
-                <X className="w-4 h-4 mr-2" />
-                Clear Search
-              </Button>
-            )}
-          </div>
-          {(isSearchActive ? filteredResults.parts : filteredParts).length === 0 ? (
-            <div className="text-center py-12">
-              {isSearchActive ? (
-                <>
-                  <p className="text-black dark:text-white text-lg mb-4">No parts found for "{searchQuery}".</p>
-                  <Button
-                    onClick={clearSearch}
-                    variant="outline"
-                    className="bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-                  >
-                    Clear Search
-                  </Button>
-                </>
-              ) : hasActiveFilters ? (
-                <>
-                  <p className="text-black dark:text-white text-lg mb-4">No parts found matching your filters.</p>
-                  <Button
-                    onClick={clearFilters}
-                    variant="outline"
-                    className="bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-                  >
-                    Clear Filters
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <p className="text-black dark:text-white text-lg">No car parts available yet.</p>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Partners will add parts here once they create them.</p>
-                </>
-              )}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {(isSearchActive ? filteredResults.parts : filteredParts).map((part) => (
-                <div key={part._id} className="bg-zinc-50 dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 p-2 flex flex-col h-80 w-full">
-                  <img
-                    src={getImageUrl(part.imageUrl, part.imageFilename, 'https://placehold.co/300x200/E0E0E0/333333?text=No+Image')}
-                    alt={part.name}
-                    className="w-full h-32 object-cover rounded-md mb-2"
-                    onError={handleImageError}
-                  />
-                  <h3 className="text-lg font-semibold text-black dark:text-white mb-1 line-clamp-2">{part.name}</h3>
-                  <p className="text-gray-700 dark:text-gray-300 text-xs mb-2 flex-grow line-clamp-2">{part.description || 'No description provided.'}</p>
-                  <div className="space-y-1 mb-3">
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Brand:</span> {part.brand || 'N/A'}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Category:</span> {part.category || 'N/A'}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Producer:</span> {part.producer?.name || 'N/A'}
-                    </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400">
-                      <span className="font-medium">Model:</span> {part.model?.name || 'N/A'}
-                    </div>
-                  </div>
-                  <div className="mt-auto">
-                    <div className="text-lg font-bold text-green-600 dark:text-green-400 mb-2">
-                      {part.price?.toFixed(2)} DH
-                    </div>
-            <Button
-                      onClick={() => handleBuyClick(part)}
-                      className="w-full bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity py-2 text-sm"
+      {/* Part Type Cards above Top Sales */}
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 mb-8">
+        <h3 className="text-3xl font-bold mb-6 text-black dark:text-white text-center">Category</h3>
+        <div className="flex flex-wrap gap-4 justify-center">
+          {partTypeOptions.map((type) => (
+            <div
+              key={type}
+              className={`flex flex-col items-center cursor-pointer border border-black dark:border-white rounded-xl p-4 bg-white dark:bg-black shadow-sm hover:shadow-lg transition-all w-32 h-40 ${selectedType === type ? 'ring-2 ring-black dark:ring-white' : ''}`}
+              onClick={() => setSelectedType(type)}
             >
-                      Buy Now
+              <img
+                src={getPartImage(type)}
+                alt={type}
+                className="w-16 h-16 object-contain mb-2"
+              />
+              <span className="font-semibold text-black dark:text-white text-center text-sm">{type}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Display filtered parts by selected type */}
+      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 mb-12">
+        <h3 className="text-2xl font-bold mb-6 text-black dark:text-white text-center">
+          {selectedType === 'all' ? 'All Car Parts' : `${selectedType} Parts`}
+        </h3>
+        {selectedType !== 'all' && (
+          <div className="flex justify-center mb-6">
+            <Button
+              onClick={() => setSelectedType('all')}
+              className="bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white hover:bg-gray-100 dark:hover:bg-gray-800 px-6 py-2 rounded-lg font-semibold"
+            >
+              ← Back
             </Button>
           </div>
-                </div>
-              ))}
+        )}
+        {filteredPartsByType.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12">
+            <div className="text-center text-gray-500 dark:text-gray-400 italic mb-4">
+              No parts found for this category.
             </div>
-          )}
-        </div>
-      </section>
-
-      {/* Popular Car Models Section */}
-      <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24 border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
-          <div className="text-center mb-12">
-            <h3 className="text-3xl font-bold mb-4 text-black dark:text-white">
-              {isSearchActive ? 'Matching Car Models' : 'Popular Car Models'}
-            </h3>
-            <p className="text-black dark:text-white text-lg">
-              {isSearchActive 
-                ? `Found ${filteredResults.models.length} model${filteredResults.models.length !== 1 ? 's' : ''} for "${searchQuery}"`
-                : 'Find parts for your specific vehicle'
-              }
-            </p>
+            <Button
+              onClick={() => setSelectedType('all')}
+              className="bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white hover:bg-gray-100 dark:hover:bg-gray-800 px-6 py-2 rounded-lg font-semibold"
+            >
+              ← Back to Categories
+            </Button>
           </div>
-          
-          {(isSearchActive ? filteredResults.models : popularModels).length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-              {(isSearchActive ? filteredResults.models : popularModels).map((model) => (
-                <div 
-                  key={model._id} 
-                  onClick={() => handleModelCardClick(model)}
-                  className="bg-white dark:bg-black rounded-lg p-6 text-center hover:bg-gray-50 dark:hover:bg-gray-800 hover:shadow-md hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-700"
-                >
-                  <h4 className="font-semibold mb-2 text-black dark:text-white">{model.name}</h4>
-                  <p className="text-sm text-black dark:text-white">{model.producer?.name}</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {filteredPartsByType.map((part) => (
+              <Card key={part._id} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col items-center shadow-md">
+                <img src={part.imageUrl} alt={part.name} className="w-32 h-32 object-cover rounded mb-3 border border-gray-300 dark:border-gray-600" />
+                <div className="w-full flex flex-col items-center">
+                  <h3 className="text-lg font-bold text-black dark:text-white mb-1">{part.name}</h3>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Brand: {part.brand}</div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Model: {part.model?.name || 'Unknown'}</div>
+                  <div className="text-base font-semibold text-black dark:text-white mb-1">{part.price} DH</div>
+                  <Button
+                    onClick={() => handleBuyClick(part)}
+                    className="mt-2 bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors text-sm font-semibold"
+                  >
+                    Buy
+                  </Button>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-12">
-              {isSearchActive ? (
-                <p className="text-black dark:text-white text-lg">No car models found for "{searchQuery}".</p>
-              ) : (
-                <p className="text-black dark:text-white text-lg">No car models available yet.</p>
-              )}
-            </div>
-          )}
-        </div>
-      </section>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Top Producers Section */}
       <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24">
@@ -893,8 +826,19 @@ const HomePage: React.FC = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-6">
               {(isSearchActive ? filteredResults.producers : topProducers).map((producer) => (
                 <div key={producer._id} className="bg-white dark:bg-black rounded-lg p-6 text-center border border-gray-200 dark:border-gray-700 hover:shadow-md hover:scale-[1.02] transition-all duration-300 group">
-                  <div className="w-16 h-16 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600">
-                    <span className="text-2xl font-bold text-black dark:text-white">
+                  <div className="w-20 h-20 bg-gray-50 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-gray-100 dark:group-hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-600 overflow-hidden">
+                    {producer.imageUrl ? (
+                      <img
+                        src={getImageUrl(producer.imageUrl, producer.imageFilename, '')}
+                        alt={producer.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                        }}
+                      />
+                    ) : null}
+                    <span className={`text-2xl font-bold text-black dark:text-white ${producer.imageUrl ? 'hidden' : ''}`}>
                       {producer.name.charAt(0)}
                     </span>
                   </div>
@@ -915,10 +859,10 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-16 bg-black dark:bg-black text-white dark:text-white px-6 sm:px-12 lg:px-24 relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
+      <section className="py-16 bg-purple-100 dark:bg-black text-black dark:text-white px-6 sm:px-12 lg:px-24 relative overflow-hidden border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 text-center relative z-10">
-          <h3 className="text-3xl font-bold mb-4 text-white dark:text-white">Ready to Get Started?</h3>
-          <p className="text-xl mb-8 text-white dark:text-white">Join thousands of customers who trust L'Afiray.ma for their auto parts needs</p>
+          <h3 className="text-3xl font-bold mb-4 text-black dark:text-white">Ready to Get Started?</h3>
+          <p className="text-xl mb-8 text-black dark:text-white">Join thousands of customers who trust L'Afiray.ma for their auto parts needs</p>
           <div className="flex flex-col sm:flex-row gap-6 justify-center">
             <Button
               onClick={() => navigate('/register')}
@@ -930,7 +874,7 @@ const HomePage: React.FC = () => {
             <Button
               onClick={() => navigate('/parts-catalog')}
               variant="outline"
-              className="bg-transparent border border-white dark:border-white text-white dark:text-white hover:bg-white hover:text-black dark:hover:bg-gray-800 dark:hover:text-white transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
+              className="bg-transparent border border-black dark:border-white text-black dark:text-white hover:bg-black hover:text-white dark:hover:bg-gray-800 dark:hover:text-white transition-colors text-lg px-8 py-4 rounded-lg shadow-sm"
               size="lg"
             >
               Browse Parts
@@ -940,7 +884,7 @@ const HomePage: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-black dark:bg-black text-white dark:text-white py-8 px-6 sm:px-12 lg:px-24 border-t border-gray-200 dark:border-gray-800">
+      <footer className="bg-purple-100 dark:bg-black text-black dark:text-white py-8 px-6 sm:px-12 lg:px-24 border-t border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center">
             {/* Removed the text 'L'Afiray.ma' and subtitle */}
@@ -949,7 +893,7 @@ const HomePage: React.FC = () => {
             <div className="flex justify-center space-x-6 mb-6">
               <a 
                 href="#" 
-                className="flex items-center space-x-2 text-gray-400 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
                 title="Follow us on X (Twitter)"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -960,7 +904,7 @@ const HomePage: React.FC = () => {
               
               <a 
                 href="#" 
-                className="flex items-center space-x-2 text-gray-400 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
                 title="Follow us on Facebook"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -971,7 +915,7 @@ const HomePage: React.FC = () => {
               
               <a 
                 href="#" 
-                className="flex items-center space-x-2 text-gray-400 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
                 title="Follow us on Instagram"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -982,7 +926,7 @@ const HomePage: React.FC = () => {
               
               <a 
                 href="#" 
-                className="flex items-center space-x-2 text-gray-400 dark:text-gray-400 hover:text-white dark:hover:text-white transition-colors"
+                className="flex items-center space-x-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
                 title="Follow us on LinkedIn"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -992,7 +936,7 @@ const HomePage: React.FC = () => {
               </a>
             </div>
             
-            <div className="flex flex-wrap justify-center items-center gap-4 text-sm text-white dark:text-white">
+            <div className="flex flex-wrap justify-center items-center gap-4 text-sm text-black dark:text-white">
               <button
                 onClick={() => setShowPrivacyPolicy(true)}
                 className="hover:underline cursor-pointer bg-transparent border-0 p-0 m-0 text-inherit"
@@ -1024,7 +968,7 @@ const HomePage: React.FC = () => {
                 Terms of Service
               </button>
             </div>
-            <span className="block w-full text-center text-xs text-gray-300 dark:text-gray-500 mt-2">
+            <span className="block w-full text-center text-xs text-gray-600 dark:text-gray-500 mt-2">
               L'Afiray.ma is Morocco's trusted online marketplace for car parts. We connect buyers and partners for quality, affordable auto parts with a seamless experience.
             </span>
           </div>
@@ -1085,7 +1029,6 @@ const HomePage: React.FC = () => {
               <ul className="space-y-2 text-black dark:text-white text-sm">
                 <li>• <strong>Dark/Light Mode:</strong> Toggle between themes using the button in the header</li>
                 <li>• <strong>Popular Models:</strong> Browse car models to find compatible parts</li>
-                <li>• <strong>Trusted Producers:</strong> View quality brands and manufacturers</li>
                 <li>• <strong>Social Media:</strong> Follow us for updates and news</li>
               </ul>
             </div>
@@ -1293,15 +1236,6 @@ const HomePage: React.FC = () => {
         onToggle={() => setShowChatBot(!showChatBot)} 
       />
       
-      {/* Fixed Mode Toggle */}
-      <div className="fixed top-20 right-4 z-50">
-        <ModeToggle />
-      </div>
-      {/* Footer with logo only */}
-      <footer className="w-full border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-black py-8 mt-16">
-        {/* Footer content removed as the section is now empty */}
-      </footer>
-
       {/* Privacy Policy Modal */}
       {showPrivacyPolicy && (
         <div className="fixed inset-0 bg-black/50 dark:bg-white/50 flex items-center justify-center z-50 p-4">
@@ -1317,13 +1251,13 @@ const HomePage: React.FC = () => {
             </div>
             <div className="text-black dark:text-white text-sm space-y-4">
               <p>
-                <strong>Effective Date: January 1, 2025</strong>
+                <strong>Effective Date: February 10, 2025</strong>
               </p>
               <p>
                 L'Afiray.ma values your privacy. We collect only the information necessary to provide our services, such as your name, contact details, and order information. We do not sell your data to third parties. Your information is used solely to improve your experience and fulfill your orders.
               </p>
               <p>
-                By using our platform, you agree to our collection and use of information as described in this policy. For questions, contact us at privacy@lafiray.ma.
+                By using our platform, you agree to our collection and use of information as described in this policy. For questions, contact us at lafirayservice@gmail.com.
               </p>
             </div>
             <div className="mt-6 text-center">
@@ -1405,7 +1339,7 @@ const HomePage: React.FC = () => {
                 We work with a network of reliable partners to ensure a wide selection of parts for all makes and models. Whether you're a car owner, mechanic, or business, L'Afiray.ma is your one-stop shop for auto parts in Morocco.
               </p>
               <p>
-                Thank you for choosing us. For inquiries, partnerships, or support, contact us at info@lafiray.ma.
+                Thank you for choosing us. For inquiries, partnerships, or support, contact us at lafirayservice@gmail.com.
               </p>
             </div>
             <div className="mt-6 text-center">

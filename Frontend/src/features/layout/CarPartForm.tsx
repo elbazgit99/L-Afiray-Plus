@@ -13,6 +13,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import { Upload, X } from 'lucide-react';
 import { validateImageFile, createImagePreview } from '@/lib/imageUtils';
+import partsImages from '@/assets/parts';
 
 interface Producer {
   _id: string;
@@ -59,6 +60,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
   const [newPartDescription, setNewPartDescription] = useState<string>('');
   const [newPartPrice, setNewPartPrice] = useState<string>('');
   const [newPartBrand, setNewPartBrand] = useState<string>('');
+  const [newPartType, setNewPartType] = useState<string>('');
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -103,7 +105,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
       imageFile: selectedImageFile,
       price: parseFloat(newPartPrice),
       brand: newPartBrand.trim(),
-      category: '', // Empty category since engine type is removed
+      category: newPartType,
       producer: selectedProducerIdForPart,
       model: selectedModelIdForPart,
     };
@@ -113,9 +115,22 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
     setNewPartDescription('');
     setNewPartPrice('');
     setNewPartBrand('');
+    setNewPartType('');
     setSelectedImageFile(null);
     setImagePreview(null);
   };
+
+  // Dynamically get part type options from assets/parts folder
+  const partTypeOptions = [
+    'Tires',
+    'Brakes',
+    'Filters',
+    'Electrics',
+    'Depreciations',
+    'Cooling System',
+    'Exhust System',
+    'Sealing Rings',
+  ];
 
   return (
     <section className="bg-gray-50 dark:bg-zinc-800 p-6 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700">
@@ -177,7 +192,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
           <Input
             type="text"
             id="part-name"
-            placeholder="e.g., Spark Plug, Air Filter"
+            placeholder="Spark Plug, Air Filter"
             value={newPartName}
             onChange={(e) => setNewPartName(e.target.value)}
             className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
@@ -208,7 +223,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
           <Input
             type="number"
             id="part-price"
-            placeholder="e.g., 25.99"
+            placeholder="25.99"
             value={newPartPrice}
             onChange={(e) => setNewPartPrice(e.target.value)}
             className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
@@ -226,12 +241,34 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
           <Input
             type="text"
             id="part-brand"
-            placeholder="e.g., Bosch, NGK"
+            placeholder="Bosch, NGK"
             value={newPartBrand}
             onChange={(e) => setNewPartBrand(e.target.value)}
             className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
             disabled={loading}
           />
+        </div>
+        {/* Part Type selection for parts */}
+        <div>
+          <Label htmlFor="part-type-select" className="block text-sm font-medium mb-1 text-black dark:text-white">
+            Select Part Type:
+          </Label>
+          <Select
+            value={newPartType}
+            onValueChange={setNewPartType}
+            disabled={loading}
+          >
+            <SelectTrigger id="part-type-select" className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600">
+              <SelectValue placeholder="Select a part type" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
+              {partTypeOptions.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         {/* Part Image Upload */}
         <div>

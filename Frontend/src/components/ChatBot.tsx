@@ -21,7 +21,7 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      text: "Hello! I'm your AI assistant. I can help you find auto parts, check order status, provide technical support, and answer any questions about L'Afiray.ma. How can I help you today?",
+      text: "Hello! I'm your AI assistant for L'Afiray.ma.\n\nYou can search for car parts, use the 'Buy' button on Top Sales, browse all parts, and filter by parts, brand, or producer. Partners can add new parts and manage their listings.\n\nLet me know if you need help with searching, buying, or using any feature!",
       sender: 'bot',
       timestamp: new Date()
     }
@@ -247,12 +247,13 @@ const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onToggle }) => {
               <p className="text-xs text-gray-500 dark:text-gray-400 text-center">Quick suggestions:</p>
               <div className="flex flex-wrap gap-2 justify-center">
                 {[
-                  "Find brake parts",
-                  "Check order status", 
-                  "Installation help",
-                  "Become a partner",
-                  "Payment methods",
-                  "Return policy"
+                  "How do I use the Buy button?",
+                  "Show me Top Sales",
+                  "How do I filter by parts?",
+                  "How do I become a partner?",
+                  "How do I add a new car part?",
+                  "What payment methods are available?",
+                  "How do I contact support?"
                 ].map((suggestion) => (
                   <Button
                     key={suggestion}

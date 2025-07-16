@@ -13,7 +13,8 @@ import {
     initializeModerator,
     forgotPassword,
     resetPassword,
-    verifyResetCode
+    verifyResetCode,
+    uploadProfileImage
 } from '../Controllers/User.controller.js';
 import { authenticateToken } from '../Middleware/AuthMiddleware.js';
 import { authorize } from '../Middleware/Roles.js';
@@ -32,6 +33,9 @@ UserRouter.post('/verify-reset-code', verifyResetCode);
 
 // Protected routes - require authentication
 UserRouter.use(authenticateToken);
+
+// Profile image upload route
+UserRouter.put('/profile-image', upload.single('profileImage'), uploadProfileImage);
 
 // Moderator only routes
 UserRouter.get('/', authorize(ROLES.MODERATOR), getAllUsers);

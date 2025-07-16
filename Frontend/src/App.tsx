@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Toaster } from '@/components/ui/sonner';
 import PrivateRoute from '@/components/PrivateRoute';
@@ -36,19 +36,19 @@ import BuyerOrdersPage from '@/features/buyer/BuyerOrdersPage';
 import CheckoutPage from '@/features/buyer/CheckoutPage';
 
 // NoMatch component for 404
-const NoMatch: React.FC = () => {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white px-6 sm:px-12 lg:px-24">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
-        <p className="text-lg">The page you're looking for does not exist.</p>
-        <Button onClick={() => window.location.href = '/'} className="mt-6 bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity">
-          Go to Home
-        </Button>
-      </div>
-    </div>
-  );
-};
+// const NoMatch: React.FC = () => {
+//   return (
+//     <div className="min-h-screen flex items-center justify-center bg-zinc-100 dark:bg-zinc-900 text-black dark:text-white px-6 sm:px-12 lg:px-24">
+//       <div className="text-center">
+//         <h1 className="text-4xl font-bold mb-4">404 - Page Not Found</h1>
+//         <p className="text-lg">The page you're looking for does not exist.</p>
+//         <Button onClick={() => window.location.href = '/'} className="mt-6 bg-black text-white dark:bg-white dark:text-black hover:opacity-90 transition-opacity">
+//           Go to Home
+//         </Button>
+//       </div>
+//     </div>
+//   );
+// };
 
 const App: React.FC = () => {
   return (
@@ -99,7 +99,7 @@ const App: React.FC = () => {
             </Route>
 
             {/* Fallback route for unmatched paths */}
-            <Route path="*" element={<NoMatch />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           <Toaster />
         </AuthProvider>

@@ -33,6 +33,7 @@ interface CarPartFormProps {
     imageFile: File | null;
     price: number;
     brand: string;
+    brandImageFile: File | null;
     category: string;
     producer: string;
     model: string;
@@ -42,6 +43,7 @@ interface CarPartFormProps {
   setSelectedProducerIdForPart: (id: string) => void;
   selectedModelIdForPart: string;
   setSelectedModelIdForPart: (id: string) => void;
+  existingPartNames: string[];
 }
 
 const CarPartForm: React.FC<CarPartFormProps> = ({
@@ -53,6 +55,7 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
   setSelectedProducerIdForPart,
   selectedModelIdForPart,
   setSelectedModelIdForPart,
+  existingPartNames,
 }) => {
   const [newPartName, setNewPartName] = useState<string>('');
   const [newPartDescription, setNewPartDescription] = useState<string>('');
@@ -60,7 +63,10 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
   const [newPartBrand, setNewPartBrand] = useState<string>('');
   const [selectedImageFile, setSelectedImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [brandImageFile, setBrandImageFile] = useState<File | null>(null);
+  const [brandImagePreview, setBrandImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const brandFileInputRef = useRef<HTMLInputElement>(null);
 
   const modelsForSelectedProducerForParts = carModels.filter(model => {
     if (!model.producer) return false;
@@ -99,6 +105,34 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
     }
   };
 
+  const handleBrandImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('Image too large', { description: 'Please select an image smaller than 5MB' });
+        return;
+      }
+      if (!file.type.startsWith('image/')) {
+        toast.error('Invalid file type', { description: 'Please select an image file' });
+        return;
+      }
+      setBrandImageFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setBrandImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeBrandImage = () => {
+    setBrandImageFile(null);
+    setBrandImagePreview(null);
+    if (brandFileInputRef.current) {
+      brandFileInputRef.current.value = '';
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Validation
@@ -122,13 +156,22 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
       toast.error('Please enter a valid non-negative price.');
       return;
     }
+    if (!newPartBrand.trim()) {
+      toast.error('Please enter a brand name.');
+      return;
+    }
+    if (!brandImageFile) {
+      toast.error('Please upload a brand image.');
+      return;
+    }
     const partData = {
       name: newPartName.trim(),
       description: newPartDescription.trim(),
       imageFile: selectedImageFile,
       price: parseFloat(newPartPrice),
       brand: newPartBrand.trim(),
-      category: '', // Empty category since engine type is removed
+      brandImageFile: brandImageFile,
+      category: '',
       producer: selectedProducerIdForPart,
       model: selectedModelIdForPart,
     };
@@ -139,6 +182,8 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
     setNewPartBrand('');
     setSelectedImageFile(null);
     setImagePreview(null);
+    setBrandImageFile(null);
+    setBrandImagePreview(null);
   };
 
   return (
@@ -193,21 +238,38 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
           </Select>
         </div>
 
-        {/* Part Name input */}
+        {/* Part Name input as select with custom option */}
         <div>
           <Label htmlFor="part-name" className="block text-sm font-medium mb-1 text-black dark:text-white">
             Part Name:
           </Label>
-          <Input
-            type="text"
-            id="part-name"
-            placeholder="Spark Plug, Air Filter"
+          <Select
             value={newPartName}
-            onChange={(e) => setNewPartName(e.target.value)}
-            className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
-            required
+            onValueChange={setNewPartName}
             disabled={loading}
-          />
+          >
+            <SelectTrigger id="part-name" className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600">
+              <SelectValue placeholder="Select or enter a part name" />
+            </SelectTrigger>
+            <SelectContent className="bg-white dark:bg-zinc-800 text-black dark:text-white border-gray-300 dark:border-gray-600">
+              {existingPartNames.map((name) => (
+                <SelectItem key={name} value={name}>{name}</SelectItem>
+              ))}
+              <SelectItem value="__custom__">Other (Enter new name)</SelectItem>
+            </SelectContent>
+          </Select>
+          {newPartName === "__custom__" && (
+            <Input
+              type="text"
+              id="part-name-custom"
+              placeholder="Enter new part name"
+              value={newPartName === "__custom__" ? "" : newPartName}
+              onChange={(e) => setNewPartName(e.target.value)}
+              className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600 mt-2"
+              required
+              disabled={loading}
+            />
+          )}
         </div>
         {/* Part Description input */}
         <div>
@@ -256,6 +318,60 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
             className="w-full shadow-sm bg-white dark:bg-zinc-700 text-black dark:text-white border-gray-300 dark:border-gray-600"
             disabled={loading}
           />
+        </div>
+        {/* Brand Image Upload */}
+        <div>
+          <Label htmlFor="brand-image-upload" className="block text-sm font-medium mb-1 text-black dark:text-white">
+            Brand Image:
+          </Label>
+          <div className="space-y-3">
+            {!brandImagePreview ? (
+              <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-gray-400 dark:hover:border-gray-500 transition-colors">
+                <input
+                  ref={brandFileInputRef}
+                  type="file"
+                  id="brand-image-upload"
+                  accept="image/*"
+                  onChange={handleBrandImageUpload}
+                  className="hidden"
+                  disabled={loading}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => brandFileInputRef.current?.click()}
+                  disabled={loading}
+                  className="w-full border-gray-300 dark:border-gray-600 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload Brand Image
+                </Button>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-gray-400 dark:text-gray-500">
+                  PNG, JPG, GIF up to 5MB
+                </p>
+              </div>
+            ) : (
+              <div className="relative">
+                <img
+                  src={brandImagePreview}
+                  alt="Preview"
+                  className="w-full h-24 object-cover rounded-lg border border-gray-300 dark:border-gray-600"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={removeBrandImage}
+                  className="absolute top-2 right-2 bg-white dark:bg-black border border-gray-300 dark:border-gray-600 text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
         {/* Part Image Upload */}
         <div>
@@ -325,7 +441,9 @@ const CarPartForm: React.FC<CarPartFormProps> = ({
             newPartName.trim().length < 2 ||
             !newPartPrice ||
             isNaN(Number(newPartPrice)) ||
-            Number(newPartPrice) < 0
+            Number(newPartPrice) < 0 ||
+            !newPartBrand.trim() ||
+            !brandImageFile
           }
         >
           Add Car Part
