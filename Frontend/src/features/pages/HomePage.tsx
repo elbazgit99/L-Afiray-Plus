@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -308,6 +308,7 @@ const HomePage: React.FC = () => {
     }).catch(() => setBrands([]));
   }, []);
 
+  const allCarPartsRef = useRef<HTMLDivElement>(null);
 
   const handleDashboardRedirect = () => {
     if (user?.role === 'MODERATOR') {
@@ -512,21 +513,36 @@ const HomePage: React.FC = () => {
   }
   const partTypeOptions = getPartTypesFromAssets();
 
+  // Add a filteredPartTypeOptions variable for the category section
+  const filteredPartTypeOptions = searchQuery.trim() === ''
+    ? partTypeOptions
+    : partTypeOptions.filter(type =>
+        type.toLowerCase().includes(searchQuery.toLowerCase().trim())
+      );
+
   const [selectedType, setSelectedType] = useState<string>('all');
   const getBrandsForType = (type: string) => {
     return Array.from(new Set(categoriesData.filter((p: CarPart) => p.category === type && p.brand).map((p: CarPart) => p.brand)));
   };
   const filteredTopSales = selectedType === 'all' ? categoriesData.slice(0, 8) : categoriesData.filter((p) => p.category === selectedType).slice(0, 8);
 
-  // Add a filteredPartsByType variable for the selected part type
+  // Update normalize to handle undefined
+  const normalize = (str: string | undefined) => (str ? str.replace(/[.]/g, ' ').trim().toLowerCase() : '');
+
   const filteredPartsByType = selectedType === 'all'
     ? categoriesData
     : categoriesData.filter((part) => {
-        // Normalize both category and selectedType for comparison
-        const normalize = (str: string) => str.replace(/[.]/g, ' ').trim().toLowerCase();
+        if (!part.category) return false;
         return normalize(part.category) === normalize(selectedType);
       });
 
+  // Handler for category click with scroll
+  const handleCategoryClick = (type: string) => {
+    setSelectedType(type);
+    setTimeout(() => {
+      allCarPartsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  };
 
   // Debug logging before render
   console.log('HomePage render - loading:', loading, 'featuredParts.length:', featuredParts.length);
@@ -739,11 +755,11 @@ const HomePage: React.FC = () => {
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 mb-8">
         <h3 className="text-3xl font-bold mb-6 text-black dark:text-white text-center">Category</h3>
         <div className="flex flex-wrap gap-4 justify-center">
-          {partTypeOptions.map((type) => (
+          {filteredPartTypeOptions.map((type) => (
             <div
               key={type}
               className={`flex flex-col items-center cursor-pointer border border-black dark:border-white rounded-xl p-4 bg-white dark:bg-black shadow-sm hover:shadow-lg transition-all w-32 h-40 ${selectedType === type ? 'ring-2 ring-black dark:ring-white' : ''}`}
-              onClick={() => setSelectedType(type)}
+              onClick={() => handleCategoryClick(type)}
             >
               <img
                 src={getPartImage(type)}
@@ -757,7 +773,7 @@ const HomePage: React.FC = () => {
       </div>
 
       {/* Display filtered parts by selected type */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 mb-12">
+      <div ref={allCarPartsRef} className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 mb-12">
         <h3 className="text-2xl font-bold mb-6 text-black dark:text-white text-center">
           {selectedType === 'all' ? 'All Car Parts' : `${selectedType} Parts`}
         </h3>

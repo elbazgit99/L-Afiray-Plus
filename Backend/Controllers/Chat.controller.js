@@ -23,7 +23,7 @@ Always be helpful, professional, and provide accurate information. If you don't 
 // Initialize OpenAI client only if API key is available
 let openai = null;
 try {
-  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '' && process.env.OPENAI_API_KEY !== 'your-openai-api-key-here') {
+  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '' && process.env.OPENAI_API_KEY !== 'AIzaSyCfWPZC4Hc8fhwf-aA9ksQljPTENMJ6Xwg') {
     openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
