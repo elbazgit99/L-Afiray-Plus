@@ -25,6 +25,7 @@ interface CarPart {
   brand: string;
   category: string;
   compatibility?: string;
+  isFeatured?: boolean;
   producer: { _id: string; name: string; };
   model: { _id: string; name: string; engine?: string; };
   createdAt?: string;
@@ -356,7 +357,6 @@ const HomePage: React.FC = () => {
         await axios.post('http://localhost:5000/api/sales', {
           partId: selectedPart._id,
           buyerId: user?._id,
-          partnerId: selectedPart.producer?._id,
           price: selectedPart.price
         });
       } catch (saleError) {
@@ -529,12 +529,60 @@ const HomePage: React.FC = () => {
   // Update normalize to handle undefined
   const normalize = (str: string | undefined) => (str ? str.replace(/[.]/g, ' ').trim().toLowerCase() : '');
 
+  // Helper function for category matching
+  const matchesCategory = (partCategory: string, selectedCategory: string): boolean => {
+    if (!partCategory) return false;
+    
+    const normalizedCategory = normalize(partCategory);
+    const normalizedSelectedType = normalize(selectedCategory);
+    
+    // Direct match
+    if (normalizedCategory === normalizedSelectedType) {
+      return true;
+    }
+    
+    // Partial match for better flexibility
+    if (normalizedCategory.includes(normalizedSelectedType) || 
+        normalizedSelectedType.includes(normalizedCategory)) {
+      return true;
+    }
+    
+    // Handle common variations
+    const categoryVariations: { [key: string]: string[] } = {
+      'tires': ['tire', 'tyres', 'tyre', 'wheel'],
+      'brakes': ['brake', 'braking'],
+      'filters': ['filter'],
+      'electrics': ['electric', 'electrical'],
+      'depreciations': ['depreciation'],
+      'cooling system': ['cooling', 'radiator'],
+      'exhust system': ['exhaust', 'exhaust system'],
+      'sealing rings': ['sealing', 'rings', 'gaskets'],
+      'accessories': ['accessory'],
+      'connections': ['connection', 'wiring'],
+      'repair set': ['repair', 'repair kit'],
+      'illuminated': ['lighting', 'lights', 'lamps'],
+      'bearings': ['bearing'],
+      'air system': ['air', 'air conditioning', 'ac'],
+      'gearbox': ['transmission', 'gear'],
+      'planetry joint': ['planetary', 'joint', 'cv joint']
+    };
+    
+    // Check variations
+    for (const [key, variations] of Object.entries(categoryVariations)) {
+      if (normalizedSelectedType === key || variations.includes(normalizedSelectedType)) {
+        if (normalizedCategory === key || variations.some(v => normalizedCategory.includes(v))) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  };
+
+  // Enhanced category matching logic
   const filteredPartsByType = selectedType === 'all'
     ? categoriesData
-    : categoriesData.filter((part) => {
-        if (!part.category) return false;
-        return normalize(part.category) === normalize(selectedType);
-      });
+    : categoriesData.filter((part) => matchesCategory(part.category, selectedType));
 
   // Handler for category click with scroll
   const handleCategoryClick = (type: string) => {
@@ -548,6 +596,14 @@ const HomePage: React.FC = () => {
   console.log('HomePage render - loading:', loading, 'featuredParts.length:', featuredParts.length);
   console.log('HomePage component is rendering!');
   console.log('featuredParts data:', featuredParts);
+  
+  // Debug category matching
+  console.log('Category matching debug:', {
+    selectedType,
+    categoriesDataLength: categoriesData.length,
+    uniqueCategories: Array.from(new Set(categoriesData.map(part => part.category))),
+    filteredPartsByTypeLength: filteredPartsByType.length
+  });
 
   if (loading) {
     return (
@@ -579,9 +635,8 @@ const HomePage: React.FC = () => {
                   className="w-44 h-16 hidden dark:block"
                 />
               </span>
-              {/* Removed the text 'L'Afiray.ma' and subtitle */}
             </div>
-            {/* NAV BUTTONS + MODE TOGGLE */}
+
             <div className="flex items-center space-x-3">
               {isAuthenticated ? (
                 <>
@@ -753,30 +808,80 @@ const HomePage: React.FC = () => {
 
       {/* Part Type Cards above Top Sales */}
       <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 mb-8">
-        <h3 className="text-3xl font-bold mb-6 text-black dark:text-white text-center">Category</h3>
+        <h3 className="text-3xl font-bold mb-6 text-black dark:text-white text-center">
+          Categories
+          {selectedType !== 'all' && (
+            <span className="block text-lg font-normal text-gray-600 dark:text-gray-400 mt-2">
+              Currently viewing: {selectedType}
+            </span>
+          )}
+        </h3>
         <div className="flex flex-wrap gap-4 justify-center">
-          {filteredPartTypeOptions.map((type) => (
-            <div
-              key={type}
-              className={`flex flex-col items-center cursor-pointer border border-black dark:border-white rounded-xl p-4 bg-white dark:bg-black shadow-sm hover:shadow-lg transition-all w-32 h-40 ${selectedType === type ? 'ring-2 ring-black dark:ring-white' : ''}`}
-              onClick={() => handleCategoryClick(type)}
-            >
-              <img
-                src={getPartImage(type)}
-                alt={type}
-                className="w-16 h-16 object-contain mb-2"
-              />
-              <span className="font-semibold text-black dark:text-white text-center text-sm">{type}</span>
+          {/* View All option */}
+          <div
+            className={`flex flex-col items-center cursor-pointer border border-black dark:border-white rounded-xl p-4 bg-white dark:bg-black shadow-sm hover:shadow-lg transition-all w-32 h-40 ${selectedType === 'all' ? 'ring-2 ring-black dark:ring-white' : ''}`}
+            onClick={() => handleCategoryClick('all')}
+          >
+            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-2">
+              <Package className="w-8 h-8 text-black dark:text-white" />
             </div>
-          ))}
+            <span className="font-semibold text-black dark:text-white text-center text-sm">View All</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">{categoriesData.length} part{categoriesData.length !== 1 ? 's' : ''}</span>
+          </div>
+          
+          {filteredPartTypeOptions.map((type) => {
+            const partCount = categoriesData.filter((part) => matchesCategory(part.category, type)).length;
+            
+            return (
+              <div
+                key={type}
+                className={`flex flex-col items-center cursor-pointer border border-black dark:border-white rounded-xl p-4 bg-white dark:bg-black shadow-sm hover:shadow-lg transition-all w-32 h-40 ${selectedType === type ? 'ring-2 ring-black dark:ring-white' : ''}`}
+                onClick={() => handleCategoryClick(type)}
+              >
+                <img
+                  src={getPartImage(type)}
+                  alt={type}
+                  className="w-16 h-16 object-contain mb-2"
+                />
+                <span className="font-semibold text-black dark:text-white text-center text-sm">{type}</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400 mt-1">{partCount} part{partCount !== 1 ? 's' : ''}</span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
       {/* Display filtered parts by selected type */}
       <div ref={allCarPartsRef} className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24 mb-12">
-        <h3 className="text-2xl font-bold mb-6 text-black dark:text-white text-center">
-          {selectedType === 'all' ? 'All Car Parts' : `${selectedType} Parts`}
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+          <h3 className="text-2xl font-bold text-black dark:text-white text-center sm:text-left">
+            {selectedType === 'all' ? 'All Car Parts' : `${selectedType} Parts`}
+            <span className="block text-lg font-normal text-gray-600 dark:text-gray-400 mt-2">
+              {filteredPartsByType.length} part{filteredPartsByType.length !== 1 ? 's' : ''} found
+            </span>
+          </h3>
+          {filteredPartsByType.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center gap-4 mt-4 sm:mt-0">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">Sort by:</span>
+                <select className="text-xs bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 text-black dark:text-white">
+                  <option>Price: Low to High</option>
+                  <option>Price: High to Low</option>
+                  <option>Name: A to Z</option>
+                  <option>Name: Z to A</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600 dark:text-gray-400">View:</span>
+                <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                  <button className="px-3 py-1 text-xs bg-black dark:bg-white text-white dark:text-black rounded-md font-medium">
+                    Grid
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
         {selectedType !== 'all' && (
           <div className="flex justify-center mb-6">
             <Button
@@ -789,40 +894,101 @@ const HomePage: React.FC = () => {
         )}
         {filteredPartsByType.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12">
-            <div className="text-center text-gray-500 dark:text-gray-400 italic mb-4">
-              No parts found for this category.
+            <div className="text-center text-gray-500 dark:text-gray-400 mb-4">
+              <p className="text-lg font-medium mb-2">No parts found for "{selectedType}"</p>
+              <p className="text-sm italic">Try selecting a different category or check back later for new parts.</p>
             </div>
-            <Button
-              onClick={() => setSelectedType('all')}
-              className="bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white hover:bg-gray-100 dark:hover:bg-gray-800 px-6 py-2 rounded-lg font-semibold"
-            >
-              ← Back to Categories
-            </Button>
+            <div className="flex gap-4">
+              <Button
+                onClick={() => setSelectedType('all')}
+                className="bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white hover:bg-gray-100 dark:hover:bg-gray-800 px-6 py-2 rounded-lg font-semibold"
+              >
+                ← Back to Categories
+              </Button>
+              <Button
+                onClick={() => navigate('/parts-catalog')}
+                className="bg-black dark:bg-white text-white dark:text-black hover:bg-gray-800 dark:hover:bg-gray-200 px-6 py-2 rounded-lg font-semibold"
+              >
+                Browse All Parts
+              </Button>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredPartsByType.map((part) => (
-              <Card key={part._id} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex flex-col items-center shadow-md">
-                <img src={part.imageUrl} alt={part.name} className="w-32 h-32 object-cover rounded mb-3 border border-gray-300 dark:border-gray-600" />
-                <div className="w-full flex flex-col items-center">
-                  <h3 className="text-lg font-bold text-black dark:text-white mb-1">{part.name}</h3>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Brand: {part.brand}</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Model: {part.model?.name || 'Unknown'}</div>
-                  <div className="text-base font-semibold text-black dark:text-white mb-1">{part.price} DH</div>
-                  <Button
-                    onClick={() => handleBuyClick(part)}
-                    className="mt-2 bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors text-sm font-semibold"
-                  >
-                    Buy
-                  </Button>
-                </div>
-              </Card>
-            ))}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+            {loading ? (
+              <>
+                {Array.from({ length: 12 }).map((_, index) => (
+                  <div key={index} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-3 animate-pulse">
+                    <div className="w-full h-24 bg-gray-200 dark:bg-gray-700 rounded-md mb-2"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                      <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3"></div>
+                      <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3"></div>
+                    </div>
+                  </div>
+                ))}
+              </>
+            ) : (
+              filteredPartsByType.map((part) => (
+                <Card key={part._id} className="bg-white dark:bg-black border border-gray-200 dark:border-gray-700 rounded-lg p-3 hover:shadow-lg transition-all duration-200 hover:scale-105 group cursor-pointer">
+                  <div className="relative">
+                    <img 
+                      src={part.imageUrl} 
+                      alt={part.name} 
+                      className="w-full h-24 object-cover rounded-md mb-2 border border-gray-200 dark:border-gray-600 group-hover:brightness-110 transition-all" 
+                      onError={(e) => {
+                        e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTYiIGhlaWdodD0iOTYiIHZpZXdCb3g9IjAgMCA5NiA5NiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9Ijk2IiBoZWlnaHQ9Ijk2IiBmaWxsPSIjRjNGNEY2Ii8+CjxwYXRoIGQ9Ik00OCA1MkM1Mi40MTgzIDUyIDU2IDQ4LjQxODMgNTYgNDRDNTYgMzkuNTgxNyA1Mi40MTgzIDM2IDQ4IDM2QzQzLjU4MTcgMzYgNDAgMzkuNTgxNyA0MCA0NEM0MCA0OC40MTgzIDQzLjU4MTcgNTIgNDggNTJaIiBmaWxsPSIjOUI5QkEwIi8+CjxwYXRoIGQ9Ik00OCA2NEM0My41ODE3IDY0IDQwIDYwLjQxODMgNDAgNTZINDZDNjAgNTYgNjAgNjAuNDE4MyA1NiA2NEM1NiA2MC40MTgzIDUyLjQxODMgNjQgNDggNjRaIiBmaWxsPSIjOUI5QkEwIi8+Cjwvc3ZnPgo=';
+                      }}
+                    />
+                    <div className="absolute top-1 right-1 bg-black dark:bg-white text-white dark:text-black text-xs px-2 py-1 rounded-full font-semibold shadow-sm">
+                      {part.category}
+                    </div>
+                    {part.isFeatured && (
+                      <div className="absolute top-1 left-1 bg-yellow-500 text-black text-xs px-2 py-1 rounded-full font-semibold shadow-sm">
+                        ⭐ Featured
+                      </div>
+                    )}
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-semibold text-black dark:text-white line-clamp-2 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{part.name}</h3>
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs text-gray-600 dark:text-gray-400">Brand: {part.brand}</div>
+                      <div className="text-xs text-green-600 dark:text-green-400 font-semibold">In Stock</div>
+                    </div>
+                    {part.model?.name && (
+                      <div className="text-xs text-gray-500 dark:text-gray-500 truncate">Model: {part.model.name}</div>
+                    )}
+                    <div className="flex items-center justify-between mt-1">
+                      <div className="text-sm font-bold text-black dark:text-white">{part.price} DH</div>
+                      {part.producer?.name && (
+                        <div className="text-xs text-gray-500 dark:text-gray-500 truncate max-w-16">by {part.producer.name}</div>
+                      )}
+                    </div>
+                    <Button
+                      onClick={() => handleBuyClick(part)}
+                      className="w-full mt-2 bg-black text-white dark:bg-white dark:text-black border border-black dark:border-white hover:bg-white hover:text-black dark:hover:bg-black dark:hover:text-white transition-colors text-xs font-semibold py-1 h-7 group-hover:shadow-md"
+                    >
+                      Buy Now
+                    </Button>
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
         )}
-      </div>
+          {filteredPartsByType.length > 12 && 
+            <div className="flex justify-center mt-8">
+              <Button
+                className="bg-white dark:bg-black text-black dark:text-white border border-black dark:border-white hover:bg-gray-100 dark:hover:bg-gray-800 px-8 py-3 rounded-lg font-semibold transition-colors"
+              >
+                Load More Parts
+              </Button>
+            </div>
+}
+  </div>
 
-      {/* Top Producers Section */}
+      {/*Top Producers Section*/}
       <section className="py-16 bg-white dark:bg-black px-6 sm:px-12 lg:px-24">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 lg:px-24">
           <div className="text-center mb-12">
@@ -1081,19 +1247,19 @@ const HomePage: React.FC = () => {
               <CardContent className="space-y-2">
                 <div className="flex justify-between text-sm">
                   <span className="text-white dark:text-black">Item:</span>
-                  <span className="text-white dark:text-black font-medium">{selectedPart.name}</span>
+                  <span className="text-white dark:text-black font-medium">{selectedPart?.name}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white dark:text-black">Brand:</span>
-                  <span className="text-white dark:text-black">{selectedPart.brand}</span>
+                  <span className="text-white dark:text-black">{selectedPart?.brand}</span>
                 </div>
                 <div className="flex justify-between text-sm">
                   <span className="text-white dark:text-black">Category:</span>
-                  <span className="text-white dark:text-black">{selectedPart.category}</span>
+                  <span className="text-white dark:text-black">{selectedPart?.category}</span>
                 </div>
                 <div className="flex justify-between text-lg font-bold pt-2 border-t border-gray-600 dark:border-gray-300">
                   <span className="text-white dark:text-black">Total:</span>
-                  <span className="text-white dark:text-black">{selectedPart.price} DH</span>
+                  <span className="text-white dark:text-black">{selectedPart?.price} DH</span>
                 </div>
               </CardContent>
             </Card>
@@ -1193,23 +1359,23 @@ const HomePage: React.FC = () => {
             <div className="space-y-4">
               <Card className="bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg text-black dark:text-white">{selectedModelDetails.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                                  <CardTitle className="text-lg text-black dark:text-white">{selectedModelDetails?.name}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-black dark:text-white">Producer:</span>
+                  <span className="text-sm text-black dark:text-white">{selectedModelDetails?.producer?.name}</span>
+                </div>
+                {selectedModelDetails?.engine && (
                   <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-black dark:text-white">Producer:</span>
-                    <span className="text-sm text-black dark:text-white">{selectedModelDetails.producer?.name}</span>
+                    <span className="text-sm font-medium text-black dark:text-white">Engine Type:</span>
+                    <span className="text-sm text-black dark:text-white">{selectedModelDetails.engine}</span>
                   </div>
-                  {selectedModelDetails.engine && (
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-black dark:text-white">Engine Type:</span>
-                      <span className="text-sm text-black dark:text-white">{selectedModelDetails.engine}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-black dark:text-white">Model ID:</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400 font-mono">{selectedModelDetails._id}</span>
-                  </div>
+                )}
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium text-black dark:text-white">Model ID:</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400 font-mono">{selectedModelDetails?._id}</span>
+                </div>
                 </CardContent>
               </Card>
 

@@ -29,6 +29,17 @@ const CarPartSchema = new mongoose.Schema({
           trim: true,
           default: 'Generic'
      },
+     category: {
+          type: String,
+          trim: true,
+          required: [true, 'Category is required'],
+          enum: [
+               'Tires', 'Brakes', 'Filters', 'Electrics', 'Depreciations', 
+               'Cooling System', 'Exhaust System', 'Sealing Rings', 'Accessories', 
+               'Connections', 'Repair Set', 'Illuminated', 'Bearings', 
+               'Air System', 'Gearbox', 'Planetary Joint'
+          ]
+     },
      compatibility: {
           type: String,
           trim: true,

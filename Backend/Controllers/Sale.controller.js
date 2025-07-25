@@ -33,4 +33,36 @@ export const getSalesByPartner = async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+};
+
+// GET /api/sales/part/:partId/count
+export const getSalesCountByPart = async (req, res) => {
+  try {
+    const { partId } = req.params;
+    const count = await Sale.countDocuments({ partId });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET /api/sales/partner/:partnerId/count
+export const getSalesCountByPartner = async (req, res) => {
+  try {
+    const { partnerId } = req.params;
+    const count = await Sale.countDocuments({ partnerId });
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// GET /api/sales/count
+export const getTotalSalesCount = async (req, res) => {
+  try {
+    const count = await Sale.countDocuments();
+    res.json({ count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 }; 

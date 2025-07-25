@@ -1,3 +1,25 @@
+# L'Afiray.ma - Auto Parts Marketplace
+
+## Features
+
+### Category Filtering
+The homepage includes a comprehensive category filtering system that allows users to browse car parts by category:
+
+- **Categories Available**: Tires, Brakes, Filters, Electrics, Depreciations, Cooling System, Exhaust System, Sealing Rings, Accessories, Connections, Repair Set, Illuminated, Bearings, Air System, Gearbox, Planetary Joint
+- **Smart Matching**: The system uses intelligent category matching that handles variations in naming (e.g., "tire" matches "tires", "brake" matches "brakes")
+- **Part Count Display**: Each category shows the number of available parts
+- **View All Option**: Users can view all parts across all categories
+- **Smooth Navigation**: Clicking a category smoothly scrolls to the filtered results
+- **Enhanced UX**: Visual feedback shows which category is currently selected
+
+### How to Use Category Filtering
+1. Navigate to the homepage
+2. Scroll down to the "Categories" section
+3. Click on any category card (e.g., "Tires", "Brakes", etc.)
+4. The page will automatically scroll to show all parts in that category
+5. Use the "View All" option to see all parts across all categories
+6. Click "← Back" to return to the categories view
+
 # L'Afiray.ma - Car Parts Marketplace
 
 A comprehensive car parts marketplace platform built with React, Node.js, and MongoDB. The platform connects car parts producers/partners with buyers, featuring a robust approval system and email notifications.
