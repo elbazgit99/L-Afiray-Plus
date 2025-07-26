@@ -34,7 +34,7 @@ interface AuthContextType {
 export const AuthContext =  createContext<AuthContextType | undefined>(undefined);
 
 // Base URL for backend API (adjust if your backend is on a different origin)
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5000/api';
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -88,8 +88,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setLoadingAuth(true);
     console.log('AuthContext: Starting login process for:', email);
     try {
-      console.log('AuthContext: Making request to:', `${API_BASE_URL}/users/login`);
-      const response = await axios.post<User>(`${API_BASE_URL}/users/login`, { email, password });
+      console.log('AuthContext: Making request to:', `${API_URL}/users/login`);
+      const response = await axios.post<User>(`${API_URL}/users/login`, { email, password });
       console.log('AuthContext: Login response:', response.data);
       const fullUser: User = response.data; // Backend sends full user object with token
 
@@ -129,7 +129,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (userData: any): Promise<boolean> => {
     setLoadingAuth(true);
     try {
-      const response = await axios.post<User>(`${API_BASE_URL}/users/register`, userData);
+      const response = await axios.post<User>(`${API_URL}/users/register`, userData);
       const fullUser: User = response.data; // Backend sends full user object with token
 
       localStorage.setItem('token', fullUser.token);

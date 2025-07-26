@@ -23,7 +23,7 @@ Always be helpful, professional, and provide accurate information. If you don't 
 // Initialize OpenAI client only if API key is available
 let openai = null;
 try {
-  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '' && process.env.OPENAI_API_KEY !== 'AIzaSyCfWPZC4Hc8fhwf-aA9ksQljPTENMJ6Xwg') {
+  if (process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '' && process.env.OPENAI_API_KEY) {
     openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY,
     });
@@ -51,7 +51,7 @@ const chatController = {
       console.log('Chat request received:', { message, userId, context });
 
       // Check if OpenAI is available and configured
-      if (openai && process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '' && process.env.OPENAI_API_KEY !== 'your-openai-api-key-here') {
+      if (openai && process.env.OPENAI_API_KEY && process.env.OPENAI_API_KEY.trim() !== '' && process.env.OPENAI_API_KEY) {
         try {
           // Generate AI response using OpenAI
           const response = await generateOpenAIResponse(message, context);

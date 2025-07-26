@@ -7,8 +7,8 @@ dotenv.config();
 const transporter = nodemailer.createTransport({
   service: 'gmail', // You can change this to other services like 'outlook', 'yahoo', etc.
   auth: {
-    user: process.env.EMAIL_SERVICE || 'lafirayservice@gmail.com',
-    pass: process.env.SERVICE_EMAIL_PASSWORD || 'kziwlialeklrqjvf'
+    user: process.env.EMAIL_SERVICE,
+    pass: process.env.SERVICE_EMAIL_PASSWORD
   }
 });
 
@@ -167,7 +167,7 @@ export const sendEmail = async (to, template, data = {}) => {
     }
     
     const mailOptions = {
-      from: process.env.EMAIL_SERVICE || 'lafirayservice@gmail.com',
+      from: process.env.EMAIL_SERVICE,
       to: to,
       subject: emailTemplate.subject,
       html: emailTemplate.html
@@ -182,7 +182,7 @@ export const sendEmail = async (to, template, data = {}) => {
   }
 };
 
-// Test email configuration
+// Test email configuration (if Authentecated)
 export const testEmailConfig = async () => {
   try {
     await transporter.verify();

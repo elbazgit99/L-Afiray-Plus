@@ -1,10 +1,8 @@
 import Brand from '../Models/Brand.js';
-import mongoose from 'mongoose';
-import { validationResult } from 'express-validator';
 import fs from 'fs';
 import path from 'path';
 
-// Helper to delete image file
+// to delete image file
 const deleteImageFile = (filename) => {
   if (filename) {
     const filePath = path.join('uploads', filename);
