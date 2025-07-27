@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button'; 
 import { Input } from '@/components/ui/input';   
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, Home } from 'lucide-react';  
+import { ArrowLeft} from 'lucide-react';  
 import ForgotPassword from '@/components/ForgotPassword';
 
 // IMPORTANT: Replace the content of this component with the actual code

@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { useAuth } from '../../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { ModeToggle } from '../../components/mode-toggle';
-import { Search, Package, Car, Building2, Filter, X, CreditCard, Lock } from 'lucide-react';
+import { Search, Package, Car, Building2, X, CreditCard, Lock } from 'lucide-react';
 import { toast } from 'sonner';
-import { getImageUrl, handleImageError } from '@/lib/imageUtils';
+import { getImageUrl } from '@/lib/imageUtils';
 import ChatBot from '../../components/ChatBot';
 import logoLight from '../../assets/logo-light.png';
 import logoDark from '../../assets/logo-dark.png';

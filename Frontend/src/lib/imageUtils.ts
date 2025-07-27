@@ -3,7 +3,6 @@
 export const getImageUrl = (imageUrl: string, imageFilename?: string, fallbackUrl?: string): string => {
   console.log('getImageUrl called with:', { imageUrl, imageFilename, fallbackUrl });
   
-  // If we have a filename, construct the URL from it (new system)
   if (imageFilename) {
     const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
     const constructedUrl = `${baseUrl}/uploads/${imageFilename}`;

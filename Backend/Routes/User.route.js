@@ -30,13 +30,10 @@ UserRouter.post('/forgot-password', forgotPassword);
 UserRouter.post('/reset-password', resetPassword);
 UserRouter.post('/initialize-moderator', initializeModerator);
 UserRouter.post('/verify-reset-code', verifyResetCode);
-
 // Protected routes - require authentication
 UserRouter.use(authenticateToken);
-
 // Profile image upload route
 UserRouter.put('/profile-image', upload.single('profileImage'), uploadProfileImage);
-
 // Moderator only routes
 UserRouter.get('/', authorize(ROLES.MODERATOR), getAllUsers);
 UserRouter.get('/partners', authorize(ROLES.MODERATOR), getAllUsers);

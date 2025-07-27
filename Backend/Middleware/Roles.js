@@ -1,4 +1,4 @@
-import ROLES from '../Constants/UserRoles.js'; // Adjust path as necessary
+import ROLES from '../Constants/UserRoles.js';
 
 export const authorize = (allowedRoles) => {
     return (req, res, next) => {

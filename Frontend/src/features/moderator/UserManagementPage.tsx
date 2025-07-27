@@ -20,7 +20,6 @@ import {
   DialogTitle,
 } from '../../components/ui/dialog';
 import { toast } from 'sonner';
-import { Trash2, Check, X, Search, RefreshCw } from 'lucide-react';
 
 interface User {
   _id: string;
@@ -34,7 +33,7 @@ interface User {
   createdAt: string;
 }
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5000/api';
 
 const UserManagementPage: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -61,7 +60,7 @@ const UserManagementPage: React.FC = () => {
         'Content-Type': 'application/json'
       };
 
-      const response = await axios.get(`${API_BASE_URL}/users`, { headers });
+      const response = await axios.get(`${API_URL}/users`, { headers });
       setUsers(response.data);
     } catch (error: any) {
       console.error('Error fetching users:', error);
@@ -91,7 +90,7 @@ const UserManagementPage: React.FC = () => {
         'Content-Type': 'application/json'
       };
 
-      await axios.delete(`${API_BASE_URL}/users/${selectedUserId}`, { headers });
+      await axios.delete(`${API_URL}/users/${selectedUserId}`, { headers });
       toast.success('User deleted successfully');
       fetchUsers(); // Refresh the list
       setIsDeleteDialogOpen(false);
@@ -117,7 +116,7 @@ const UserManagementPage: React.FC = () => {
         'Content-Type': 'application/json'
       };
 
-      await axios.put(`${API_BASE_URL}/users/${userId}/approve`, {}, { headers });
+      await axios.put(`${API_URL}/users/${userId}/approve`, {}, { headers });
       toast.success('User approved successfully');
       fetchUsers(); // Refresh the list
     } catch (error: any) {
@@ -139,7 +138,7 @@ const UserManagementPage: React.FC = () => {
         'Content-Type': 'application/json'
       };
 
-      await axios.put(`${API_BASE_URL}/users/${userId}/reject`, {}, { headers });
+      await axios.put(`${API_URL}/users/${userId}/reject`, {}, { headers });
       toast.success('User rejected');
       fetchUsers(); // Refresh the list
     } catch (error: any) {

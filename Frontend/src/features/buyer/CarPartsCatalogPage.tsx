@@ -23,7 +23,7 @@ interface CarPart {
   model: { _id: string; name: string; }; // Populated model
 }
 
-const API_BASE_URL = 'http://localhost:5000/api'; // Ensure this matches your backend server's address
+const API_URL = 'http://localhost:5000/api'; // Ensure this matches your backend server's address
 
 // Helper to get image path for a part type
 const getPartImage = (type: string) => {
@@ -111,7 +111,7 @@ const CarPartsCatalogPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        let url = `${API_BASE_URL}/carparts`;
+        let url = `${API_URL}/carparts`;
         const params: Record<string, string> = {};
         if (selectedPart !== 'all') {
           params.category = selectedPart;
@@ -346,7 +346,7 @@ const CarPartsCatalogPage: React.FC = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredParts.map((part, index) => (
+          {filteredParts.map((part) => (
             <div key={part._id} className="bg-zinc-50 dark:bg-zinc-800 rounded-lg shadow-md overflow-hidden border border-gray-200 dark:border-gray-700 p-2 flex flex-col h-80 w-full">
               <img
                 src={getImageUrl(part.imageUrl, part.imageFilename, 'https://placehold.co/300x200/E0E0E0/333333?text=No+Image')}

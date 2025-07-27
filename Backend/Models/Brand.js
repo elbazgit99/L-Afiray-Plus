@@ -6,7 +6,7 @@ const BrandSchema = new mongoose.Schema({
     required: true,
     trim: true,
     unique: true,
-    minlength: [2, 'Brand name must be at least 2 characters long']
+    minlength: [2, 'Brand name must be at least 2 characters']
   },
   imageUrl: {
     type: String,

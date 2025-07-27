@@ -22,7 +22,7 @@ interface User {
   phone?: string;
 }
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5000/api';
 
 const TableUsers: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -34,7 +34,7 @@ const TableUsers: React.FC = () => {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get<User[]>(`${API_BASE_URL}/users`);
+      const response = await axios.get<User[]>(`${API_URL}/users`);
       setUsers(response.data);
       toast.success("Users loaded successfully.");
     } catch (error: any) {
@@ -55,7 +55,7 @@ const TableUsers: React.FC = () => {
     
     setLoading(true);
     try {
-      await axios.delete(`${API_BASE_URL}/users/${selectedUserId}`);
+      await axios.delete(`${API_URL}/users/${selectedUserId}`);
       toast.success("User deleted successfully.");
       fetchUsers();
     } catch (error: any) {

@@ -6,7 +6,7 @@ import { ArrowLeft, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5000/api';
 
 interface ForgotPasswordProps {
   onBack: () => void;
@@ -35,7 +35,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack, onSuccess }) =>
     setLoading(true);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/users/forgot-password`, { email });
+      const response = await axios.post(`${API_URL}/users/forgot-password`, { email });
       toast.success('Reset code sent!', { description: 'Check your email for the 6-digit code.' });
       setStep('code');
     } catch (error: any) {
@@ -59,7 +59,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack, onSuccess }) =>
     setLoading(true);
     try {
       // Call backend to verify code
-      await axios.post(`${API_BASE_URL}/users/verify-reset-code`, {
+      await axios.post(`${API_URL}/users/verify-reset-code`, {
         email,
         resetCode
       });
@@ -88,7 +88,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack, onSuccess }) =>
     setLoading(true);
 
     try {
-      await axios.post(`${API_BASE_URL}/users/reset-password`, {
+      await axios.post(`${API_URL}/users/reset-password`, {
         email,
         resetCode,
         newPassword
@@ -114,7 +114,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ onBack, onSuccess }) =>
 
     setLoading(true);
     try {
-      await axios.post(`${API_BASE_URL}/users/forgot-password`, { email });
+      await axios.post(`${API_URL}/users/forgot-password`, { email });
       toast.success('New code sent!', { description: 'Check your email for the new 6-digit code.' });
     } catch (error: any) {
       console.error('Resend code error:', error);

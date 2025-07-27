@@ -20,7 +20,7 @@ interface HoverSidebarProps {
 }
 
 const HoverSidebar: React.FC<HoverSidebarProps> = ({ userRole }) => {
-  const { logout, user } = useAuth();
+  const { logout } = useAuth();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);

@@ -18,12 +18,10 @@ const router = express.Router();
 router.get('/reports', authenticateToken, authorize([ROLES.MODERATOR]), getAllReports);
 router.post('/reports', authenticateToken, createReport); // Any authenticated user can create reports
 router.put('/reports/:id', authenticateToken, authorize([ROLES.MODERATOR]), updateReport);
-
 // Disputes routes
 router.get('/disputes', authenticateToken, authorize([ROLES.MODERATOR]), getAllDisputes);
 router.post('/disputes', authenticateToken, createDispute); // Any authenticated user can create disputes
 router.put('/disputes/:id', authenticateToken, authorize([ROLES.MODERATOR]), updateDispute);
-
 // Statistics and audit routes (moderator only)
 router.get('/stats', authenticateToken, authorize([ROLES.MODERATOR]), getModerationStats);
 router.get('/audit', authenticateToken, authorize([ROLES.MODERATOR]), getAuditTrail);

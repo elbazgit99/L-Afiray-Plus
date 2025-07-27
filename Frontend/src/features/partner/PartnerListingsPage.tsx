@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { toast } from 'sonner';
-import { useLocation } from 'react-router-dom'; // Keep useLocation if needed for conditional rendering based on path
+import { useLocation } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-
-// Import the sub-components
 import ProducerForm from '@/features/partner/ProducerForm';
 import CarModelForm from '@/features/partner/CarModelForm';
 import CarPartForm from '@/features/partner/CarPartForm';
 import ApprovalPendingBanner from '@/components/ApprovalPendingBanner';
 
-// Define interfaces for your data structures
+// Define interfaces for data structures
 interface Producer {
   _id: string;
   name: string;
@@ -50,7 +48,7 @@ interface Brand {
 }
 
 // Base URL for backend API
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5000/api';
 
 const PartnerListingsPage: React.FC = () => {
   const location = useLocation(); // Retain useLocation if this page might be used in different paths (e.g., Moderator)
@@ -79,10 +77,10 @@ const PartnerListingsPage: React.FC = () => {
   });
 
   // State for brands
-  const [brands, setBrands] = useState<Brand[]>([]);
+  const [setBrands] = useState<Brand[]>([]);
   const [newBrandName, setNewBrandName] = useState('');
   const [newBrandImage, setNewBrandImage] = useState<File | null>(null);
-  const [brandImagePreview, setBrandImagePreview] = useState<string | null>(null);
+  const [setBrandImagePreview] = useState<string | null>(null);
 
   // Prefill edit form when editingPart changes
   React.useEffect(() => {
@@ -146,7 +144,7 @@ const PartnerListingsPage: React.FC = () => {
 
   // Create axios instance with authentication
   const authAxios = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: API_URL,
     headers: {
       'Authorization': `Bearer ${token}`
     }
@@ -188,7 +186,7 @@ const PartnerListingsPage: React.FC = () => {
   const getModels = useCallback(async () => {
     setLoading(true);
     try {
-      console.log('Fetching car models from:', `${API_BASE_URL}/models`);
+      console.log('Fetching car models from:', `${API_URL}/models`);
       const response = await authAxios.get<CarModel[]>('/models');
       console.log('Car models response:', response.data);
       setCarModels(response.data);

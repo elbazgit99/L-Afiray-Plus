@@ -21,7 +21,6 @@ const OTPVerification: React.FC<OTPVerificationProps> = ({
   const maxAttempts = 3;
 
   // This would be the actual OTP code in a real application
-  // For demo purposes, we'll use a fixed code
   const correctOTP = '1234';
 
   const handleVerification = async () => {

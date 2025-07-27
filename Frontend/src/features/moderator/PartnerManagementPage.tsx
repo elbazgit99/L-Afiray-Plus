@@ -2,20 +2,15 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
-import { Label } from '../../components/ui/label';
 import { toast } from 'sonner';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Card, CardContent,} from '../../components/ui/card';
 import { 
   Building2, 
   Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
   CheckCircle,
   Clock,
   Trash2,
   User,
-  Send,
   TrendingUp
 } from 'lucide-react';
 

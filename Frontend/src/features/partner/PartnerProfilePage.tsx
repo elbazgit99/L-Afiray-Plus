@@ -2,11 +2,9 @@ import React, { useState, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent} from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Building2, Upload, Camera, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { Building2,Camera, CheckCircle, Clock} from 'lucide-react';
 import axios from 'axios';
 
 const PartnerProfilePage: React.FC = () => {

@@ -5,7 +5,7 @@ import {
   ChartTooltip, 
   ChartTooltipContent, 
   ChartLegend, 
-  ChartLegendContent 
+  ChartLegendContent,
 } from '../../components/ui/chart';
 import { 
   LineChart, 
@@ -20,17 +20,12 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
-  ResponsiveContainer
 } from 'recharts';
 import { 
   Users, 
   Package, 
-  TrendingUp, 
   DollarSign, 
   ShoppingCart, 
-  Building2,
-  Activity,
-  Target
 } from 'lucide-react';
 
 // Sample data for charts

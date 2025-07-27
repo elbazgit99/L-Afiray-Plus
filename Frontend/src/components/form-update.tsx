@@ -17,7 +17,7 @@ interface User {
   phone?: string;
 }
 
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_URL = 'http://localhost:5000/api';
 
 const UpdateUserForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +35,7 @@ const UpdateUserForm: React.FC = () => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const response = await axios.get<User>(`${API_BASE_URL}/users/${id}`);
+        const response = await axios.get<User>(`${API_URL}/users/${id}`);
         setUser(response.data);
         setName(response.data.name);
         setEmail(response.data.email);
@@ -66,7 +66,7 @@ const UpdateUserForm: React.FC = () => {
         updatedData.companyAddress = companyAddress;
       }
 
-      await axios.put(`${API_BASE_URL}/users/${id}`, updatedData);
+      await axios.put(`${API_URL}/users/${id}`, updatedData);
       toast.success("User updated successfully!");
       navigate('/dash-home/users'); // Go back to user list
     } catch (error: any) {
