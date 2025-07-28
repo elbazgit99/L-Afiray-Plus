@@ -125,17 +125,17 @@ PORT=5000
 FRONTEND_URL=http://localhost:5173
 
 # Database Configuration
-DB_URI=mongodb://localhost:27017/l-afiray
-USER_NAME=lafirayApp
-PASSWORD=pstqXKcXOZAHrpZO
+DB_URI=`your-database-uri`
+USER_NAME=database-name
+PASSWORD=database-password
 
 # Email Configuration (Gmail)
-EMAIL_USER=lafiray@moderator.ma
-EMAIL_PASSWORD=lafiray@moderator.ma
+EMAIL_USER=moderator-email@email.com
+EMAIL_PASSWORD=your-email-password
 
 # Service Email (for partner notifications)
-EMAIL_SERVICE=lafirayservice@gmail.com
-SERVICE_EMAIL_PASSWORD=your-16-character-app-password
+EMAIL_SERVICE=your-service@email.com
+SERVICE_EMAIL_PASSWORD=your-16-character-app-password(generated-by-email)
 
 # JWT Secret (authentication)
 JWT_SECRET=your-jwt-secret-key-here
@@ -146,7 +146,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 
 ### 4. Gmail Setup for Email Notifications
 
-1. **Enable 2-Factor Authentication** on `lafirayservice@gmail.com`
+1. **Enable 2-Factor Authentication** on `your-real-email@emaul.com`
 2. **Generate App Password**:
    - Go to Google Account → Security → 2-Step Verification → App passwords
    - Select "Mail" and generate password
@@ -164,20 +164,20 @@ npm run setup-moderator
 ```bash
 npm run dev
 ```
-Backend will run on: `http://localhost:5000`
+Backend will run on: `your-server`
 
 #### Start Frontend Development Server
 ```bash
 cd Frontend
 npm run dev
 ```
-Frontend will run on: `http://localhost:5173` or `http://localhost:5174`
+Frontend will run on: `http://localhost:5173`
 
 ## 👥 Default Users
 
 ### Moderator Account
-- **Email**: `lafiray@moderator.ma`
-- **Password**: `lafiray@moderator.ma`
+- **Email**: `you-moderator@email.com`
+- **Password**: `you-moderator@email.com`
 - **Access**: Full moderator dashboard
 
 ## 🔧 API Endpoints
@@ -229,7 +229,7 @@ The platform includes automatic email notifications for partner approval/rejecti
 - **Partner Rejected**: Professional rejection with next steps
 
 ### Email Configuration
-- **Service Email**: `lafirayservice@gmail.com`
+- **Service Email**: `your-service@gmail.com`
 - **Gmail App Password**: Required for authentication
 - **Automatic Notifications**: Sent on approval/rejection
 
@@ -315,7 +315,7 @@ L-Afiray.ma/
 
 ### v2.1.0 - Email & UI Improvements
 - ✅ **Fixed Email Configuration**: Proper Gmail app password setup
-- ✅ **Updated Service Email**: Now using `lafirayservice@gmail.com`
+- ✅ **Updated Service Email**: Now using `your-service@gmail.com`
 - ✅ **UI Cleanup**: Removed unnecessary elements and improved design
 - ✅ **Authentication Fixes**: Proper token handling in API requests
 - ✅ **Error Handling**: Improved error messages and toast notifications
@@ -404,7 +404,7 @@ This project is licensed under the ISC License.
 
 For support and questions:
 - Create an issue on GitHub
-- Email: lafirayservice@gmail.com
+- Email: hamza4contacting@gmail.com
 - Phone: +212 5 00 00 00 00
 
 ---
